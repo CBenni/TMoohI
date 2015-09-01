@@ -11,7 +11,7 @@ import socketserver
 
 import BuildCounter
 import TMoohIManager
-import TMoohIStatTrack
+from TMoohIStatTrack import TMoohIStatTrack
 import TMoohIWebSocketLogger
 from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 
@@ -79,6 +79,7 @@ class TMoohIServer():
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
+    
     def handle(self):
         self.buffer = ""
         self.nick = ""

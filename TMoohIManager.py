@@ -6,14 +6,14 @@ import urllib.request as urllib2
 
 import TMoohIUser
 import TMoohIConnection
-import TMoohIStatTrack
+from TMoohIStatTrack import TMoohIStatTrack
 from MoohLog import eventmessage
 from TMoohIErrors import RateLimitError
 from TMoohIChangeCalc import TMoohIChangeTracker
 
 # This is the main manager for anything TMI/twitch API related. It will also bootstrap all the connections that have to be created when the server boots.
 # Its parent is the main TMoohI class.
-class TMoohIManager(TMoohIStatTrack.TMoohIStatTrack):
+class TMoohIManager(TMoohIStatTrack):
     def __init__(self,parent):
         self.started = time.time()
         self.cachedJSONresponses = dict()
