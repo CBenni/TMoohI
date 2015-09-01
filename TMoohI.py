@@ -33,7 +33,7 @@ class TMoohIServer():
             "port": 6667,
             "host":"localhost",
             "websockethost": "localhost",
-            "websocketport": 8567,
+            "websocketport": 3141,
             "logfile":"tmoohi_%Y_%m_%d.log",
             "logfile-loglevel": 10,
             "console-loglevel": 0,
