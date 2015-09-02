@@ -44,7 +44,7 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
     def onConnect(self, request):
         self.factory.logger.writers.append(self)
         self.level = 0
-        self.filter = [{"type":"stats"}]
+        self.filters = []
         print("Client connecting: {}".format(request.peer))
 
     def onOpen(self):
@@ -56,12 +56,16 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
         else:
             print("Text message received: {}".format(payload.decode('utf8')))
             try:
-                self.filter = json.loads(payload.decode('utf8'))
+                jsondecoded = json.loads(payload.decode('utf8'))
+                if type(jsondecoded) == list:
+                    self.filters = jsondecoded
+                    print("Filter updated to %s"%(self.filters))
             except:
                 pass
 
     def inner_write(self,message):
-        self.sendMessage(message.encode("utf-8"))
+        print("sending message via websocket")
+        self.sendMessage(str(message).encode("utf-8"))
 
     def onClose(self, wasClean, code, reason):
         self.factory.logger.writers.remove(self)

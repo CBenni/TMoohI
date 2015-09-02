@@ -11,7 +11,7 @@
 		txt.val( txt.val() + "\n"+x);
 	}
 	
-	w = new WebSocket('ws://localhost:8765');
+	w = new WebSocket('ws://localhost:3141');
 	w.onopen = function(e) {
 		log("Connected")
 		log(e)
@@ -24,15 +24,18 @@
 	
 	$(function(){
 		$("#sender").keypress(function(e) {
-			log("Sending "+$("#sender").val())
-			if(e.which == 13) w.send($("#sender").val());
+			if(e.which == 13) 
+			{
+				w.send($("#sender").val());
+				log("Sending "+$("#sender").val())
+			}
 		});
 	})
 	</script>
 </head>
 
 <body>
-	<input type="text" id="sender" />
+	<input type="text" id="sender" /></button><br>
 	<textarea id="receiver" style="width: 600px; height: 300px;"></textarea>
 </body>
 
