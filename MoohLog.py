@@ -76,7 +76,7 @@ class logmessage(object):
                 inv = f.startswith("!")
                 if inv:
                     f=f[1:]
-                print("checking filter %s with value %s on data %s/level %s/type %s"%(f,value,self.data,self.level,self.type))
+                #print("checking filter %s with value %s on data %s/level %s/type %s"%(f,value,self.data,self.level,self.type))
                 
                 # by XORing (!=) with the inversion value, we can invert the result
                 if f=="level":

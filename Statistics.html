@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>wstest</title>
+	<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+	<script>
+	function log(x){
+		var txt = $("#receiver");
+		console.log(x)
+		txt.val( txt.val() + "\n"+x);
+	}
+	
+	w = new WebSocket('ws://localhost:8765');
+	w.onopen = function(e) {
+		log("Connected")
+		log(e)
+		w.send("1")
+	}
+	w.onmessage = function(e) {
+		log(e)
+		log(e.data)
+	}
+	
+	$(function(){
+		$("#sender").keypress(function(e) {
+			log("Sending "+$("#sender").val())
+			if(e.which == 13) w.send($("#sender").val());
+		});
+	})
+	</script>
+</head>
+
+<body>
+	<input type="text" id="sender" />
+	<textarea id="receiver" style="width: 600px; height: 300px;"></textarea>
+</body>
+
+</html>

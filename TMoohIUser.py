@@ -72,7 +72,7 @@ class TMoohIUser(TMoohIStatTrack):
                 for conn in self.connections[clusterinfo[0]]:
                     try:
                         # create channel object - also joins the channel
-                        channelinfo = TMoohIChannel(self,channel,clusterinfo[0],conn)
+                        channelinfo = TMoohIChannel.TMoohIChannel(self,channel,clusterinfo[0],conn)
                         # add to global ratelimiter
                         self.parent._joinedchannels.append(now)
                         # add the channelinfo to channels

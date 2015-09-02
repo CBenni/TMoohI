@@ -49,7 +49,7 @@ class TMoohIManager(TMoohIStatTrack):
                 self._connectionIDcounter[connkey] += 1
             except Exception:
                 self._connectionIDcounter[connkey] = 1
-            return TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s@%s #%d"%(user.nick,clusterinfo[0],self._connectionIDcounter[connkey]))
+            return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s@%s #%d"%(user.nick,clusterinfo[0],self._connectionIDcounter[connkey]))
     
     def connect(self, client):
         for userkey in self.users:
@@ -57,7 +57,7 @@ class TMoohIManager(TMoohIStatTrack):
             if usr.nick == client.nick and usr.oauth == client.oauth:
                 usr.welcome(client)
                 return usr
-        usr = TMoohIUser(self,client.nick,client.oauth)
+        usr = TMoohIUser.TMoohIUser(self,client.nick,client.oauth)
         self.users[usr.key] = usr
         usr.welcome(client)
         print("Created user with key %s"%(usr.key,))
