@@ -2,6 +2,7 @@ import codecs
 import datetime
 import re
 import sys
+import json
 import traceback
 
 class MoohLogger(object):
@@ -123,8 +124,7 @@ class eventmessage(logmessage):
 
 
 class statsmessage(logmessage):
-    def __init__(self,event,message):
-        message = re.sub("oauth:([a-z0-9]+)",reploauth,message)
-        super(eventmessage,self).__init__({ "event":event, "message":message })
+    def __init__(self,stats):
+        super(statsmessage,self).__init__({ "stats":json.dumps(stats) })
         self.type = "stats"
-        self.format = "[%(event)s] %(message)s"
+        self.format = "%(stats)s"

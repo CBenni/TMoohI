@@ -10,6 +10,7 @@ from TMoohIStatTrack import TMoohIStatTrack
 from MoohLog import eventmessage
 from TMoohIErrors import RateLimitError
 from TMoohIChangeCalc import TMoohIChangeTracker
+import MoohLog
 
 # This is the main manager for anything TMI/twitch API related. It will also bootstrap all the connections that have to be created when the server boots.
 # Its parent is the main TMoohI class.
@@ -176,7 +177,8 @@ class TMoohIManager(TMoohIStatTrack):
         while(1):
             try:
                 serialized = self._statsTracker.update(self.serialize())
-                print(json.dumps(serialized))
+                #print(json.dumps(serialized))
+                self.logger.log(-1,MoohLog.statsmessage(serialized))
             except Exception:
                 self.logger.exception()
             time.sleep(10)

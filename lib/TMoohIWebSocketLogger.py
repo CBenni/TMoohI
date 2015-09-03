@@ -6,14 +6,16 @@ import MoohLog
 from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 class TMoohIWebsocketServer:
-    def __init__(self, logger, host, port):
-        self.logger = logger
+    def __init__(self, parent, host, port):
+        self.parent = parent
+        self.logger = parent.logger
         self.host = host
         self.port = port
         
         self.factory = WebSocketServerFactory()
         self.factory.protocol = MyServerProtocol
         self.factory.connections = []
+        self.factory.parent = self.parent
         self.factory.server = self
         self.factory.logger = self.logger
         self.logger.info(MoohLog.eventmessage("general","WebSocketServer loading up!"))
@@ -49,6 +51,7 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
 
     def onOpen(self):
         print("WebSocket connection open.")
+        self.inner_write(json.dumps(self.factory.parent.manager._statsTracker.oldval))
 
     def onMessage(self, payload, isBinary):
         if isBinary:

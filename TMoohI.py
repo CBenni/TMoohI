@@ -65,7 +65,7 @@ class TMoohIServer():
         self.logger.info(eventmessage("general","%s loaded"%(self.BuildInfo,)))
         self.logger.info(eventmessage("general","Starting TMoohI server on port %d - CTRL+C to stop"%(self.config["port"],)))
         
-        self.websocketserver = TMoohIWebSocketLogger.TMoohIWebsocketServer(self.logger,self.config["websockethost"],self.config["websocketport"])
+        self.websocketserver = TMoohIWebSocketLogger.TMoohIWebsocketServer(self, self.config["websockethost"], self.config["websocketport"])
         
         self.manager = TMoohIManager.TMoohIManager(self)
         
