@@ -11,15 +11,17 @@ def getVersionInfo(projectname,extensions=None):
     except:
         pass
     h = hashlib.md5()
-    for filename in os.listdir("."):
-        ext = filename.rsplit(".",1)[-1]
-        if extensions==None or ext in extensions:
-            with open( filename , "rb" ) as f:
-                while True:
-                    buf = f.read(128)
-                    if not buf:
-                        break
-                    h.update( buf )
+    for root, directories, filenames in os.walk('.'):
+        for fn in filenames: 
+            filename = os.path.join(root, fn)
+            ext = filename.rsplit(".",1)[-1]
+            if extensions==None or ext in extensions:
+                with open( filename , "rb" ) as f:
+                    while True:
+                        buf = f.read(128)
+                        if not buf:
+                            break
+                        h.update( buf )
     newhash = h.hexdigest()
     if newhash != bi.data["hash"]:
         bi.data["hash"] = newhash

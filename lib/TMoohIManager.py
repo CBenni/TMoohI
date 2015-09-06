@@ -148,9 +148,12 @@ class TMoohIManager(TMoohIStatTrack):
             try:
                 if len(self.resendqueue)>0:
                     message = self.resendqueue.pop(0)
-                    user = message[0]
-                    client = message[1]
-                    data = message[2]
+                    user = message["user"]
+                    try:
+                        client = message["client"]
+                    except KeyError:
+                        client = None
+                    data = message["message"]
                     self.logger.debug(eventmessage("queue","Dequeing message %s for %s"%(data,user.key)))
                     successfulsend = user.handleClientMessage(client,data)
                     self.logger.debug(eventmessage("queue","handleClientMessage returned with value %s"%(successfulsend,)))
