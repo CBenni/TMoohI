@@ -27,3 +27,10 @@ def parseIRCMessage(message):
             data[state] += " "
         data[state] += part
     return data
+
+import re
+def getNickName(userkey):
+    try:
+        return re.match(":(\w+)",userkey).group(1)
+    except:
+        return ""

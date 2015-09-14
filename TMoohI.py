@@ -180,6 +180,3 @@ if __name__ == '__main__':
     main(sys.argv)
 
 # TODO: proper shutdowns
-# TODO: status info
-# TODO: websocket support
-# TODO: handle server restarts/client disconnects/bot disconnects

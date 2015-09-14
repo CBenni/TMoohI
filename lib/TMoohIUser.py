@@ -296,7 +296,7 @@ class TMoohIUser(TMoohIStatTrack):
     
     
     def welcome(self,client):
-        client.request.sendall(":tmi.twitch.tv 001 {username} :Welcome, GLHF!\r\n:tmi.twitch.tv 002 {username} :Your host is tmi.twitch.tv\r\n:tmi.twitch.tv 003 {username} :This server is pretty old\r\n:tmi.twitch.tv 004 {username} :{buildinfo} loaded and running smoothly.\r\n:tmi.twitch.tv 375 {username} :-\r\n:tmi.twitch.tv 372 {username} :You are in a maze of twisty passages, all alike.\r\n:tmi.twitch.tv 376 {username} :>\r\n".format(username=client.nick,buildinfo=self.parent.parent.BuildInfo).encode("utf-8"))
+        client.request.sendall(":tmi.twitch.tv 001 {username} :Welcome, GLHF!\r\n:tmi.twitch.tv 002 {username} :Your host is tmi.twitch.tv\r\n:tmi.twitch.tv 003 {username} :This server is pretty old\r\n:tmi.twitch.tv 004 {username} :{buildinfo} loaded and running smoothly.\r\n:tmi.twitch.tv 375 {username} :-\r\n:tmi.twitch.tv 372 {username} :You are in a maze of dank memes, all alike.\r\n:tmi.twitch.tv 376 {username} :>\r\n".format(username=client.nick,buildinfo=self.parent.parent.BuildInfo).encode("utf-8"))
         for channelkey,channelobj in self.channels.items():  # @UnusedVariable
             if channelobj.is_welcomed():
                 channelobj.welcome(client)

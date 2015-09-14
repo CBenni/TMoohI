@@ -4,13 +4,13 @@ import random
 import threading
 import urllib.request as urllib2
 
+import MoohLog
 import TMoohIUser
 import TMoohIConnection
-from TMoohIStatTrack import TMoohIStatTrack
 from MoohLog import eventmessage
 from TMoohIErrors import RateLimitError
+from TMoohIStatTrack import TMoohIStatTrack
 from TMoohIChangeCalc import TMoohIChangeTracker
-import MoohLog
 
 # This is the main manager for anything TMI/twitch API related. It will also bootstrap all the connections that have to be created when the server boots.
 # Its parent is the main TMoohI class.
