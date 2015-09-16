@@ -2,10 +2,10 @@ import re
 import time
 import socket
 import threading
-from TMoohIStatTrack import TMoohIStatTrack
-from MoohLog import eventmessage
-from TMoohIMessageParser import parseIRCMessage, STATE_COMMAND, STATE_PARAM
-from TMoohIErrors import NotConnectedError, RateLimitError, TooManyChannelsError
+from .TMoohIStatTrack import TMoohIStatTrack
+from .MoohLog import eventmessage
+from .TMoohIMessageParser import parseIRCMessage, STATE_COMMAND, STATE_PARAM
+from .TMoohIErrors import NotConnectedError, RateLimitError, TooManyChannelsError
 
 #This class represents an actual connection to TMI servers. It is owned by a TMoohIUser
 class TMoohIConnection(TMoohIStatTrack):
@@ -57,6 +57,9 @@ class TMoohIConnection(TMoohIStatTrack):
         self._authed = False
         # we automatically connect to said server.
         self.connect()
+    
+    def quit(self):
+        self.kill()
     
     def getConnected(self):
         return self.connected
@@ -116,7 +119,7 @@ class TMoohIConnection(TMoohIStatTrack):
         self.connected = False
         self.parent.connections[self.clustername].remove(self)
         if self.killing:
-            self.logger.warning(eventmessage("connect","Connection ID %s killed!"%(self.connid,)))
+            self.logger.info(eventmessage("connect","Connection ID %s killed!"%(self.connid,)))
         else:
             self.logger.error(eventmessage("connect","Connection ID %s disconnected!"%(self.connid,)))
             for channel in self.channels:

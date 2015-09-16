@@ -2,7 +2,7 @@ import json
 import asyncio
 import threading
 
-import MoohLog
+from . import MoohLog
 from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 class TMoohIWebsocketServer:
@@ -12,35 +12,45 @@ class TMoohIWebsocketServer:
         self.host = host
         self.port = port
         
+        self.server = None
+        self.loop = None
+        
         self.factory = WebSocketServerFactory()
         self.factory.protocol = MyServerProtocol
         self.factory.connections = []
         self.factory.parent = self.parent
         self.factory.server = self
         self.factory.logger = self.logger
-        self.logger.info(MoohLog.eventmessage("general","WebSocketServer loading up!"))
+        self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up!"))
         
         self.serverthread = threading.Thread(target = self.runserver)
         self.serverthread.start()
+    
+    def quit(self):
+        self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shutting down!"))
+        self.server.close()
+        self.loop.call_soon_threadsafe(self.loop.stop) 
+        self.loop.stop()
     
     def broadcast(self,level,message):
         for conn in self.factory.connections:
             conn.postMessage(level,message)
     
     def runserver(self):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
         
-        coro = loop.create_server(self.factory, self.host, self.port)
-        server = loop.run_until_complete(coro)
+        coro = self.loop.create_server(self.factory, self.host, self.port)
+        self.server = self.loop.run_until_complete(coro)
 
         try:
-            loop.run_forever()
+            self.loop.run_forever()
         except KeyboardInterrupt:
             pass
         finally:
-            server.close()
-            loop.close()
+            self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shut down!"))
+            self.server.close()
+            self.loop.close()
 
 class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
     def onConnect(self, request):

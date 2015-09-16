@@ -9,13 +9,12 @@ import yaml
 import argparse
 import socketserver
 
-import BuildCounter
-import TMoohIManager
-from TMoohIStatTrack import TMoohIStatTrack
-import TMoohIWebSocketLogger
-from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
+import lib.BuildCounter as BuildCounter
+import lib.TMoohIManager as TMoohIManager
+from lib.TMoohIStatTrack import TMoohIStatTrack
+from lib import TMoohIWebSocketLogger
+from lib.MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 
-sys.path.append("lib")
 
 # This is the main TMoohIServer class. It manages the different clients coming in, the MultiBotManager, the control channel 
 # as well as initialisation and message processing.
@@ -24,6 +23,7 @@ class TMoohIServer():
     def __init__(self,config):
         self.BuildInfo = BuildCounter.getVersionInfo("TMoohI",["py"])
         
+        self.quitting = False
         #config options
         # host+port: where TMoohI listens for client connections on
         # reference channel: the channel to gather chat_properties from
@@ -70,6 +70,12 @@ class TMoohIServer():
         self.websocketserver = TMoohIWebSocketLogger.TMoohIWebsocketServer(self, self.config["websockethost"], self.config["websocketport"])
         
         self.manager = TMoohIManager.TMoohIManager(self)
+    
+    def quit(self):
+        self.quitting = True
+        self.manager.quit()
+        self.websocketserver.quit()
+        self.server.shutdown()
         
     def run(self):
         self.server = ThreadedTCPServer((self.config["host"],self.config["port"]), TMoohITCPHandler)
@@ -94,13 +100,13 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
             "since": time.time(),
             "sent": self.getCommandsSent
         }
-        while True:
+        while not self.server.TMoohIParent.quitting:
             try:
                 self.data = self.request.recv(1024)
                 if not self.data:
                     # client disconnected
                     break
-                self.server.TMoohIParent.logger.debug(eventmessage("raw","Got raw client message from %s (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
+                self.server.TMoohIParent.logger.debug(eventmessage("client","Got raw client message from %s (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
                 self.buffer += self.data.decode("utf-8")
                 lines = self.buffer.split("\r\n")
                 self.buffer = lines[-1]
@@ -144,9 +150,9 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
         except Exception:
             self.server.TMoohIParent.logger.exception()
         if self.data:
-            self.server.TMoohIParent.logger.debug(eventmessage("raw","Client %s disconnected (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
+            self.server.TMoohIParent.logger.debug(eventmessage("client","Client %s disconnected (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
         else:
-            self.server.TMoohIParent.logger.debug(eventmessage("raw","Client %s disconnected (sock ID %d)"%(self.client_address[0],self.client_address[1])))
+            self.server.TMoohIParent.logger.debug(eventmessage("client","Client %s disconnected (sock ID %d)"%(self.client_address[0],self.client_address[1])))
         # this part is executed when the client disconnects
     
     def getUptime(self):
@@ -168,7 +174,8 @@ def main(argv):
         except (KeyboardInterrupt,SystemExit):
             uninterrupted = False
             srv.logger.info(eventmessage("general","Stopping TMoohI server."))
-            sys.exit()
+            srv.quit()
+            break
         except Exception:
             srv.logger.exception()
             if time.time()-lastcrash < 60*10:
@@ -180,5 +187,3 @@ def main(argv):
             lastcrash = time.time()
 if __name__ == '__main__':
     main(sys.argv)
-
-# TODO: proper shutdowns
