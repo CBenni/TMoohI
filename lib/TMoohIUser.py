@@ -1,10 +1,10 @@
 import time
 
-import TMoohIChannel
-from MoohLog import eventmessage
-from TMoohIStatTrack import TMoohIStatTrack
-from TMoohIErrors import NotConnectedError, TooManyChannelsError, RateLimitError
-from TMoohIMessageParser import parseIRCMessage, STATE_PREFIX, STATE_TRAILING, STATE_PARAM, STATE_COMMAND
+from . import TMoohIChannel
+from .MoohLog import eventmessage
+from .TMoohIStatTrack import TMoohIStatTrack
+from .TMoohIErrors import NotConnectedError, TooManyChannelsError, RateLimitError
+from .TMoohIMessageParser import parseIRCMessage, STATE_PREFIX, STATE_TRAILING, STATE_PARAM, STATE_COMMAND
 # This represents a username/oauth combo. It manages TMI connections to all clusters, dispatches messages in both directions and manages channel joins/parts (the ratelimiter is global however)
 # Its parent is the TMoohIManager.
 class TMoohIUser(TMoohIStatTrack):
@@ -35,6 +35,11 @@ class TMoohIUser(TMoohIStatTrack):
             "TMIMessages": 0,
             "ClientMessages": 0,
         }
+    
+    def quit(self):
+        for cluster, connections in self.connections.items():
+            for connection in connections:
+                connection.quit()
         
     def join(self,channel):
         self.logger.debug(eventmessage("channel","Trying to join channel %s"%(channel,)))

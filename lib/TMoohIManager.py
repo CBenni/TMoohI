@@ -4,18 +4,19 @@ import random
 import threading
 import urllib.request as urllib2
 
-import MoohLog
-import TMoohIUser
-import TMoohIConnection
-from MoohLog import eventmessage
-from TMoohIErrors import RateLimitError
-from TMoohIStatTrack import TMoohIStatTrack
-from TMoohIChangeCalc import TMoohIChangeTracker
+from . import MoohLog
+from . import TMoohIUser
+from . import TMoohIConnection
+from .MoohLog import eventmessage
+from .TMoohIErrors import RateLimitError
+from .TMoohIStatTrack import TMoohIStatTrack
+from .TMoohIChangeCalc import TMoohIChangeTracker
 
 # This is the main manager for anything TMI/twitch API related. It will also bootstrap all the connections that have to be created when the server boots.
 # Its parent is the main TMoohI class.
 class TMoohIManager(TMoohIStatTrack):
     def __init__(self,parent):
+        self.quitting = False
         self.started = time.time()
         self.cachedJSONresponses = dict()
         self.users = {}
@@ -36,6 +37,13 @@ class TMoohIManager(TMoohIStatTrack):
         self._statsTracker = TMoohIChangeTracker(self.serialize())
         self._updatestatusthread = threading.Thread(target=self.updateStatus)
         self._updatestatusthread.start()
+    
+    def quit(self):
+        self.quitting = True
+        for userkey,usr in self.users.items():
+            usr.quit()
+        
+            
         
     def TMIConnectionFactory(self,user,clusterinfo):
         now = time.time()
@@ -53,8 +61,7 @@ class TMoohIManager(TMoohIStatTrack):
             return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s@%s #%d"%(user.nick,clusterinfo[0],self._connectionIDcounter[connkey]))
     
     def connect(self, client):
-        for userkey in self.users:
-            usr = self.users[userkey]
+        for userkey,usr in self.users.items():
             if usr.nick == client.nick and usr.oauth == client.oauth:
                 usr.welcome(client)
                 return usr
@@ -144,7 +151,7 @@ class TMoohIManager(TMoohIStatTrack):
         
     def handleResendQueue(self):
         unsuccessfulsends = 0
-        while True:
+        while not self.quitting:
             try:
                 if len(self.resendqueue)>0:
                     message = self.resendqueue.pop(0)
@@ -177,12 +184,15 @@ class TMoohIManager(TMoohIStatTrack):
         return time.time()-self.started
     
     def updateStatus(self):
-        while(1):
-            try:
-                serialized = self._statsTracker.update(self.serialize())
-                #print(json.dumps(serialized))
-                self.logger.log(-1,MoohLog.statsmessage(serialized))
-            except Exception:
-                self.logger.exception()
-            time.sleep(10)
+        cnt = 0
+        while not self.quitting:
+            if cnt%10==0:
+                try:
+                    serialized = self._statsTracker.update(self.serialize())
+                    #print(json.dumps(serialized))
+                    self.logger.log(-1,MoohLog.statsmessage(serialized))
+                except Exception:
+                    self.logger.exception()
+            cnt += 1
+            time.sleep(1)
         #self._updatestatustimer.start()

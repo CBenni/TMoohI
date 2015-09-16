@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from TMoohIStatTrack import TMoohIStatTrack
+from .TMoohIStatTrack import TMoohIStatTrack
 # represents a #channel@cluster or #channel object. It is used to track the ROOMSTATE, USERSTATE etc, in order to properly welcome users.
 # the parent is a TMoohIUser
 class TMoohIChannel(TMoohIStatTrack):
