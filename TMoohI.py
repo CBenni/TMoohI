@@ -15,6 +15,8 @@ from TMoohIStatTrack import TMoohIStatTrack
 import TMoohIWebSocketLogger
 from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 
+sys.path.append("lib")
+
 # This is the main TMoohIServer class. It manages the different clients coming in, the MultiBotManager, the control channel 
 # as well as initialisation and message processing.
 # Note that it will not interact with IRC directly
