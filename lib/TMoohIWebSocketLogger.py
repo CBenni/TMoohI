@@ -2,7 +2,7 @@ import json
 import asyncio
 import threading
 
-from . import MoohLog
+import MoohLog
 from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 class TMoohIWebsocketServer:

@@ -34,3 +34,7 @@ def getNickName(userkey):
         return re.match(":(\w+)",userkey).group(1)
     except:
         return ""
+
+def getIRCv3Info(ex):
+    v3info = ex[STATE_V3][1:]
+    return dict(tag.split("=",1) for tag in v3info.split(";"))

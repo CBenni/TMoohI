@@ -38,7 +38,7 @@ class TMoohIServer():
             "websocketport": 3141,
             "logfile":"tmoohi_%Y_%m_%d.log",
             "logfile-loglevel": 10,
-            "console-loglevel": 0,
+            "console-loglevel": 10,
             "status-json":"tmoohi-status.json",
             "ref-channel-normal":"#cbenni",
             "ref-channel-event":"#riotgames",
@@ -87,7 +87,6 @@ class TMoohIServer():
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
-    
     def handle(self):
         self.buffer = ""
         self.nick = ""

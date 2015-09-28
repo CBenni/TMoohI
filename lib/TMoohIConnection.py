@@ -2,10 +2,10 @@ import re
 import time
 import socket
 import threading
-from .TMoohIStatTrack import TMoohIStatTrack
-from .MoohLog import eventmessage
-from .TMoohIMessageParser import parseIRCMessage, STATE_COMMAND, STATE_PARAM
-from .TMoohIErrors import NotConnectedError, RateLimitError, TooManyChannelsError
+from TMoohIStatTrack import TMoohIStatTrack
+from MoohLog import eventmessage
+from TMoohIMessageParser import parseIRCMessage, STATE_COMMAND, STATE_PARAM
+from TMoohIErrors import NotConnectedError, RateLimitError, TooManyChannelsError
 
 #This class represents an actual connection to TMI servers. It is owned by a TMoohIUser
 class TMoohIConnection(TMoohIStatTrack):

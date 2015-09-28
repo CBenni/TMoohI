@@ -4,13 +4,13 @@ import random
 import threading
 import urllib.request as urllib2
 
-from . import MoohLog
-from . import TMoohIUser
-from . import TMoohIConnection
-from .MoohLog import eventmessage
-from .TMoohIErrors import RateLimitError
-from .TMoohIStatTrack import TMoohIStatTrack
-from .TMoohIChangeCalc import TMoohIChangeTracker
+import MoohLog
+import TMoohIUser
+import TMoohIConnection
+from MoohLog import eventmessage
+from TMoohIErrors import RateLimitError
+from TMoohIStatTrack import TMoohIStatTrack
+from TMoohIChangeCalc import TMoohIChangeTracker
 
 # This is the main manager for anything TMI/twitch API related. It will also bootstrap all the connections that have to be created when the server boots.
 # Its parent is the main TMoohI class.
@@ -189,6 +189,7 @@ class TMoohIManager(TMoohIStatTrack):
             if cnt%10==0:
                 try:
                     serialized = self._statsTracker.update(self.serialize())
+                    print(serialized)
                     #print(json.dumps(serialized))
                     self.logger.log(-1,MoohLog.statsmessage(serialized))
                 except Exception:

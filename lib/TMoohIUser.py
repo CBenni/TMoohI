@@ -1,10 +1,10 @@
 import time
 
-from . import TMoohIChannel
-from .MoohLog import eventmessage
-from .TMoohIStatTrack import TMoohIStatTrack
-from .TMoohIErrors import NotConnectedError, TooManyChannelsError, RateLimitError
-from .TMoohIMessageParser import parseIRCMessage, STATE_PREFIX, STATE_TRAILING, STATE_PARAM, STATE_COMMAND
+import TMoohIChannel
+from MoohLog import eventmessage
+from TMoohIStatTrack import TMoohIStatTrack
+from TMoohIErrors import NotConnectedError, TooManyChannelsError, RateLimitError
+from TMoohIMessageParser import parseIRCMessage, STATE_PREFIX, STATE_TRAILING, STATE_PARAM, STATE_COMMAND
 # This represents a username/oauth combo. It manages TMI connections to all clusters, dispatches messages in both directions and manages channel joins/parts (the ratelimiter is global however)
 # Its parent is the TMoohIManager.
 class TMoohIUser(TMoohIStatTrack):
@@ -57,7 +57,7 @@ class TMoohIUser(TMoohIStatTrack):
             if channelname in self.channelsByName[clusterinfo[0]] and len(self.channelsByName[clusterinfo[0]][channelname])>0:
                 # if the channelname is already joined, we use its connection, no need to ratelimit:
                 refchannel = self.channelsByName[clusterinfo[0]][channelname][0]
-                channelinfo = TMoohIChannel(self,channel,clusterinfo[0],refchannel.conn)
+                channelinfo = TMoohIChannel.TMoohIChannel(self,channel,clusterinfo[0],refchannel.conn)
                 # add the channelinfo to channels
                 self.channels[channel] = channelinfo
                 # add the channelinfo to channelsByName
@@ -279,13 +279,15 @@ class TMoohIUser(TMoohIStatTrack):
                         messagetext += " "+message[STATE_TRAILING]
                     if message[STATE_COMMAND] in targetchannelinfo.data:
                         waswelcomed = targetchannelinfo.is_welcomed()
-                        targetchannelinfo.data[message[STATE_COMMAND]] = messagetext
+                        print("got data message",message)
+                        targetchannelinfo.setData(message)
                         # if the channel is welcomed now, we welcome the clients
                         if ((not waswelcomed) and targetchannelinfo.is_welcomed()):
                             for client in self.clients:
                                 targetchannelinfo.welcome(client)
                             continue
-                    self.broadcast(messagetext)
+                    if targetchannelinfo.is_welcomed():
+                        self.broadcast(messagetext)
                 return
         # no channelbound message. Just broadcast then.
         self.broadcast(message[0])

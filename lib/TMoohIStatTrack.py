@@ -8,8 +8,11 @@ class TMoohIStatTrack:
         pass
     
     def serialize(self):
+        data = {}
         self._update()
-        return self._serialize(self)
+        for stat,val in self.stats.items():
+            data[stat] = self._serialize(val)
+        return data
     
     def _serialize(self,obj):
         typ = type(obj)
@@ -20,12 +23,8 @@ class TMoohIStatTrack:
             for key,val in obj.items():
                 data[key] = self._serialize(val)
             return data
-        elif issubclass(typ, TMoohIStatTrack):
-            data = {}
-            obj._update()
-            for stat,val in obj.stats.items():
-                data[stat] = self._serialize(val)
-            return data
+        elif hasattr(obj, "serialize"):
+            return obj.serialize()
         elif typ is types.MethodType:
             return obj()
         else:
