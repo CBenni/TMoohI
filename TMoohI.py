@@ -9,11 +9,11 @@ import yaml
 import argparse
 import socketserver
 
-import lib.BuildCounter as BuildCounter
-import lib.TMoohIManager as TMoohIManager
-from lib.TMoohIStatTrack import TMoohIStatTrack
-from lib import TMoohIWebSocketLogger
-from lib.MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
+import TMoohIWebSocketLogger
+import BuildCounter as BuildCounter
+import TMoohIManager as TMoohIManager
+from TMoohIStatTrack import TMoohIStatTrack
+from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 
 
 # This is the main TMoohIServer class. It manages the different clients coming in, the MultiBotManager, the control channel 

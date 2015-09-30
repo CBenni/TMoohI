@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from TMoohIStatTrack import TMoohIStatTrack
 from TMoohIMessageParser import STATE_COMMAND, parseIRCMessage, STATE_V3
-from lib.TMoohIMessageParser import getIRCv3Info
+from TMoohIMessageParser import getIRCv3Info
 # represents a #channel@cluster or #channel object. It is used to track the ROOMSTATE, USERSTATE etc, in order to properly welcome users.
 # the parent is a TMoohIUser
 class TMoohIChannel(TMoohIStatTrack):
