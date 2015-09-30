@@ -189,7 +189,7 @@ class TMoohIManager(TMoohIStatTrack):
             if cnt%10==0:
                 try:
                     serialized = self._statsTracker.update(self.serialize())
-                    print(serialized)
+                    #print(serialized)
                     #print(json.dumps(serialized))
                     self.logger.log(-1,MoohLog.statsmessage(serialized))
                 except Exception:
