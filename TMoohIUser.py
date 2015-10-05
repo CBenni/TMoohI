@@ -257,8 +257,8 @@ class TMoohIUser(TMoohIStatTrack):
         if message[STATE_PREFIX] == ownhostmask and message[STATE_COMMAND] in ["PRIVMSG",]:
             # eat messages from "myself".
             return
-        if message[STATE_COMMAND] in ["001","002","003","004","375","372","376"]:
-            # eat numeric "welcome" messages.
+        if message[STATE_COMMAND] in ["001","002","003","004","375","372","376","PONG"]:
+            # eat numeric "welcome" messages as well as pongs.
             return
         params = message[STATE_PARAM]
         if message[STATE_COMMAND] == "PRIVMSG":
