@@ -135,7 +135,7 @@ class TMoohIConnection(TMoohIStatTrack):
             raise NotConnectedError()
         now = time.time()
         self._sentmessages = [i for i in self._sentmessages if i>now-30]
-        if len(self._sentmessages)>25:
+        if len(self._sentmessages)>15:
             raise RateLimitError('Sending "PRIVMSG %s :%s" on connection ID %s'%(channelname,message,self.connid))
         else:
             self.sendraw("PRIVMSG %s %s"%(channelname,message))
