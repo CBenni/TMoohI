@@ -49,7 +49,7 @@ class filewriter(logwriter):
         self.fileformat = fileformat
     def inner_write(self,message):
         try:
-            with codecs.open(datetime.datetime.now().strftime(self.fileformat), "a", "utf-8") as myfile:
+            with codecs.open("tmoohi.log", "a", "utf-8") as myfile:
                 myfile.write(str(message)+"\r\n")
         except:
             pass
