@@ -153,7 +153,7 @@ class TMoohIUser(TMoohIStatTrack):
         try:
             return self.privmsg(message)
         except Exception:
-            client.request.sendall(b":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PRIVMSG command. Use PRIVMSG #channel :message or PRIVMSG #channel%scluster :message where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
+            client.request.sendall((":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PRIVMSG command. Use PRIVMSG #channel :message or PRIVMSG #channel%scluster :message where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
     
     def handle_client_cap(self,client,message):
         client.request.sendall(b":tmi.twitch.tv 410 tmi.twitch.tv :Invalid CAP command. TMoohI always runs twitch.tv/commands and twitch.tv/tags\r\n")
@@ -174,10 +174,10 @@ class TMoohIUser(TMoohIStatTrack):
                     allok = ok and allok
             except TypeError:
                 self.logger.exception()
-                client.request.sendall(b":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
+                client.request.sendall((":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
             return allok
         else:
-            client.request.sendall(b":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
+            client.request.sendall((":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
     
     def handle_client_part(self,client,message):
         ok = True
@@ -191,7 +191,7 @@ class TMoohIUser(TMoohIStatTrack):
         else:
             ok = False
         if not ok:
-            client.request.sendall(b":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PART command. Use PART #channel or PART #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
+            client.request.sendall((":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PART command. Use PART #channel or PART #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
         return True
         
     

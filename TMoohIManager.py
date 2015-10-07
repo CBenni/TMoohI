@@ -53,12 +53,12 @@ class TMoohIManager(TMoohIStatTrack):
         else:
             self._createdconnections.append(now)
             #create a connection
-            connkey = "%s@%s"%(user.nick,clusterinfo[0])
+            connkey = "%s%s%s"%(user.nick,self.parent.config["cluster-seperator"],clusterinfo[0])
             try:
                 self._connectionIDcounter[connkey] += 1
             except Exception:
                 self._connectionIDcounter[connkey] = 1
-            return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s@%s #%d"%(user.nick,clusterinfo[0],self._connectionIDcounter[connkey]))
+            return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s%s%s #%d"%(user.nick,clusterinfo[0],self.parent.config["cluster-seperator"],self._connectionIDcounter[connkey]))
     
     def connect(self, client):
         for userkey,usr in self.users.items():
@@ -78,7 +78,7 @@ class TMoohIManager(TMoohIStatTrack):
             self.logger.exception()
         
     def getClusterInfo(self,channel,oauth=None):
-        info = channel.split("@")
+        info = channel.split(self.parent.config["cluster-seperator"])
         checkchannel = ""
         if len(info)==1:
             if info[0][1]=="_":
