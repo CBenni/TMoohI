@@ -26,7 +26,7 @@ class TMoohIManager(TMoohIStatTrack):
         self.stats = { "users":self.users, "queue":self.getResendQueueLength, "since":time.time() }
         
         # contains all the messages that couldnt be sent at the given point in time as a tuple (user,client,message)
-        self.resendqueue = []
+        self.joinqueue = []
         
         self._createdconnections = []
         self._joinedchannels = []
@@ -53,12 +53,12 @@ class TMoohIManager(TMoohIStatTrack):
         else:
             self._createdconnections.append(now)
             #create a connection
-            connkey = "%s%s%s"%(user.nick,self.parent.config["cluster-seperator"],clusterinfo[0])
+            connkey = "%s/%s"%(clusterinfo[0],user.nick,)
             try:
                 self._connectionIDcounter[connkey] += 1
             except Exception:
                 self._connectionIDcounter[connkey] = 1
-            return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s%s%s #%d"%(user.nick,clusterinfo[0],self.parent.config["cluster-seperator"],self._connectionIDcounter[connkey]))
+            return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s #%d"%(connkey,self._connectionIDcounter[connkey]))
     
     def connect(self, client):
         for userkey,usr in self.users.items():
@@ -150,11 +150,12 @@ class TMoohIManager(TMoohIStatTrack):
         return data
         
     def handleResendQueue(self):
-        unsuccessfulsends = 0
-        while not self.quitting:
+        while True:
             try:
-                if len(self.resendqueue)>0:
-                    message = self.resendqueue.pop(0)
+                # in each iteration, handle the joinQueue
+                while self.joinqueue:
+                    # dequeue messages and handle them until we meet one that we cannot handle yet
+                    message = self.joinqueue.pop(0)
                     user = message["user"]
                     try:
                         client = message["client"]
@@ -162,23 +163,22 @@ class TMoohIManager(TMoohIStatTrack):
                         client = None
                     data = message["message"]
                     self.logger.debug(eventmessage("queue","Dequeing message %s for %s"%(data,user.key)))
-                    successfulsend = user.handleClientMessage(client,data)
+                    successfulsend = user.handleClientMessage(client,data, False)
                     self.logger.debug(eventmessage("queue","handleClientMessage returned with value %s"%(successfulsend,)))
                     if successfulsend:
-                        self.logger.debug(eventmessage("queue","handleClientMessage was successful! Queue length: %d, unsuccessful sends: %d"%(len(self.resendqueue),unsuccessfulsends)))
-                        unsuccessfulsends = 0
+                        self.logger.debug(eventmessage("queue","handleClientMessage was successful! Queue length: %d"%(len(self.joinqueue),)))
                     else:
-                        unsuccessfulsends += 1
-                        self.logger.debug(eventmessage("queue","handleClientMessage added a new item to the queue. Queue length: %d, unsuccessful sends: %d"%(len(self.resendqueue),unsuccessfulsends)))
-                        if len(self.resendqueue)<=unsuccessfulsends:
-                            time.sleep(0.5)
-                else:
-                    time.sleep(0.5)
+                        self.logger.debug(eventmessage("queue","handleClientMessage added a new item to the queue. Queue length: %d"%(len(self.joinqueue),)))
+                        break
+                # then handle the messageQueues
+                for userkey,usr in self.users.items():
+                    usr.handleMessageQueue()
+                time.sleep(0.5)
             except Exception:
                 self.logger.exception()
     
     def getResendQueueLength(self):
-        return len(self.resendqueue)
+        return len(self.joinqueue)
     
     def getUptime(self):
         return time.time()-self.started

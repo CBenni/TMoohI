@@ -118,7 +118,7 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
                     if self.user:
                         if ex[0].upper() == "PRIVMSG":
                             self.commandsent += 1
-                        self.user.handleClientMessage(self, line)
+                        self.user.handleClientMessage(self, line, True)
                     else:
                         if ex[0] == "NICK":
                             m=re.match("^NICK (\w+)$",line)

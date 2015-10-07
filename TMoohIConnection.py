@@ -122,9 +122,11 @@ class TMoohIConnection(TMoohIStatTrack):
             self.logger.info(eventmessage("connect","Connection ID %s killed!"%(self.connid,)))
         else:
             self.logger.error(eventmessage("connect","Connection ID %s disconnected!"%(self.connid,)))
+            # when the connection dies, rejoin the channels on different (or new) connections
             for channel in self.channels:
                 self.parent.part(channel.channelkey,announce = True)
-                self.manager.resendqueue.append({"user":self.parent,"message":"JOIN %s"%(channel.channelkey,)})
+                self.logger.error(eventmessage("queue","Readding channel %s to the joinqueue!"%(channel.channelkey,)))
+                self.manager.joinqueue.append({"user":self.parent,"message":"JOIN %s"%(channel.channelkey,)})
     
     def sendraw(self,x):
         self.logger.debug(eventmessage("raw","Sending a RAW TMI message on bot %s: %s"%(self.connid,x)))
