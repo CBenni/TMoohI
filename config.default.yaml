@@ -1,0 +1,12 @@
+host:                  'localhost'
+port:                  6667
+websockethost:         'localhost'
+websocketport:         3141
+logfile:               'tmoohi_%Y_%m_%d.log'
+logfile-loglevel:      10
+console-loglevel:      10
+status-json:           'tmoohi-status.json'
+ref-channel-normal:    '#cbenni'
+ref-channel-event:     '#riotgames'
+ref-oauth-group:       
+cluster-seperator:     '@'

@@ -70,11 +70,11 @@ class TMoohIConnection(TMoohIStatTrack):
         self._recvthread = threading.Thread(target=self.listen)
         self._recvthread.start()
         self.logger.info(eventmessage("connect","Connecting to %s/%s for %s"%(self.ip, self.port, self.connid)))
+        self.sendraw("CAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands")
         if self.parent.oauth:
             self.sendraw("PASS %s"%(self.parent.oauth,))
         self.sendraw("USER %s %s %s :%s"%(self.parent.nick,self.parent.nick,self.parent.nick,self.parent.nick,))
         self.sendraw("NICK %s"%(self.parent.nick,))
-        self.sendraw("CAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands")
     
     def listen(self):
         try:
@@ -122,9 +122,11 @@ class TMoohIConnection(TMoohIStatTrack):
             self.logger.info(eventmessage("connect","Connection ID %s killed!"%(self.connid,)))
         else:
             self.logger.error(eventmessage("connect","Connection ID %s disconnected!"%(self.connid,)))
+            # when the connection dies, rejoin the channels on different (or new) connections
             for channel in self.channels:
                 self.parent.part(channel.channelkey,announce = True)
-                self.manager.resendqueue.append({"user":self.parent,"message":"JOIN %s"%(channel.channelkey,)})
+                self.logger.error(eventmessage("queue","Readding channel %s to the joinqueue!"%(channel.channelkey,)))
+                self.manager.joinqueue.append({"user":self.parent,"message":"JOIN %s"%(channel.channelkey,)})
     
     def sendraw(self,x):
         self.logger.debug(eventmessage("raw","Sending a RAW TMI message on bot %s: %s"%(self.connid,x)))

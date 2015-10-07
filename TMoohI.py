@@ -42,7 +42,8 @@ class TMoohIServer():
             "status-json":"tmoohi-status.json",
             "ref-channel-normal":"#cbenni",
             "ref-channel-event":"#riotgames",
-            "ref-oauth-group":""
+            "ref-oauth-group":"",
+            "cluster-seperator": "@"
         }
         
         for k in config.__dict__:
@@ -83,7 +84,7 @@ class TMoohIServer():
         self.server.serve_forever()
 
     def __del__(self):
-        self.logger.info(eventmessage("general","Stopping TMoohI server."))
+        self.logger.info(eventmessage("general","Stopped TMoohI server."))
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
@@ -117,7 +118,7 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
                     if self.user:
                         if ex[0].upper() == "PRIVMSG":
                             self.commandsent += 1
-                        self.user.handleClientMessage(self, line)
+                        self.user.handleClientMessage(self, line, True)
                     else:
                         if ex[0] == "NICK":
                             m=re.match("^NICK (\w+)$",line)
