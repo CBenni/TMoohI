@@ -7,10 +7,12 @@ from TMoohIMessageParser import getIRCv3Info
 class TMoohIChannel(TMoohIStatTrack):
     def __init__(self,parent,channelkey,cluster,connection):
         self.channelkey = channelkey
-        self.channelname = channelkey.split("@")[0]
         self.cluster = cluster
         self.parent = parent
+        self.manager = self.parent.parent
         self.conn = connection
+        # 3 parents: user -> manager -> tmoohi
+        self.channelname = channelkey.split(self.manager.parent.config["cluster-seperator"])[0]
         # maps a command type (ROOMSTATE, HOSTTARGET, USERSTATE, numeric) to a full message
         self.data = OrderedDict.fromkeys(["JOIN","353","366","USERSTATE","ROOMSTATE","HOSTTARGET"])
         self.join()
@@ -41,10 +43,7 @@ class TMoohIChannel(TMoohIStatTrack):
     def welcome(self,client):
         for key,val in self.data.items():  # @UnusedVariable
             if val:
-                client.request.sendall((val[0]+"\r\n").encode("utf-8"))
-    
-    def is_welcomed(self):
-        return self.data["ROOMSTATE"]!=None
+                client.request.sendall((val[0]+"\r\n").encode("utf-8")) #.replace(self.channelname,self.channelname)
     
     def part(self):
         self.conn.part(self)

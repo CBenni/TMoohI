@@ -4,7 +4,7 @@ import TMoohIChannel
 from MoohLog import eventmessage
 from TMoohIStatTrack import TMoohIStatTrack
 from TMoohIErrors import NotConnectedError, TooManyChannelsError, RateLimitError
-from TMoohIMessageParser import parseIRCMessage, STATE_PREFIX, STATE_TRAILING, STATE_PARAM, STATE_COMMAND
+from TMoohIMessageParser import parseIRCMessage, STATE_PREFIX, STATE_TRAILING, STATE_PARAM, STATE_COMMAND, STATE_V3
 # This represents a username/oauth combo. It manages TMI connections to all clusters, dispatches messages in both directions and manages channel joins/parts (the ratelimiter is global however)
 # Its parent is the TMoohIManager.
 class TMoohIUser(TMoohIStatTrack):
@@ -27,6 +27,8 @@ class TMoohIUser(TMoohIStatTrack):
         # maps cluster (normal,event,group) to a time, when a connection for that cluster was last requested
         self._lastNewConnectionRequest = {"normal":0,"event":0,"group":0}
         
+        self.globaluserstate = ""
+        
         self.stats = {
             "nick": self.nick,
             "channels": self.channels,
@@ -44,7 +46,7 @@ class TMoohIUser(TMoohIStatTrack):
     def join(self,channel):
         self.logger.debug(eventmessage("channel","Trying to join channel %s"%(channel,)))
         if channel in self.channels:
-            self.logger.debug(eventmessage("channel","Couldnt join channel %s: already joined."%(channel,)))
+            self.logger.debug(eventmessage("channel","Couldn't join channel %s: already joined."%(channel,)))
             return True
         if channel[0] != "#":
             raise TypeError("PRIVMSG: Invalid channel %s."%(channel,))
@@ -53,10 +55,11 @@ class TMoohIUser(TMoohIStatTrack):
         now = time.time()
         self.parent._joinedchannels = [i for i in self.parent._joinedchannels if i>now-30]
         if len(self.parent._joinedchannels)<25:
-            channelname = channel.split("@")[0]
+            channelname = channel.split(self.parent.parent.config["cluster-seperator"])[0]
             if channelname in self.channelsByName[clusterinfo[0]] and len(self.channelsByName[clusterinfo[0]][channelname])>0:
                 # if the channelname is already joined, we use its connection, no need to ratelimit:
                 refchannel = self.channelsByName[clusterinfo[0]][channelname][0]
+                print("Channel "+channelname+ " already joined. Adding and welcoming. Data: %s"%(refchannel.data,))
                 channelinfo = TMoohIChannel.TMoohIChannel(self,channel,clusterinfo[0],refchannel.conn)
                 # add the channelinfo to channels
                 self.channels[channel] = channelinfo
@@ -64,13 +67,11 @@ class TMoohIUser(TMoohIStatTrack):
                 self.channelsByName[clusterinfo[0]][channelname].append(channelinfo)
                 # now we need to welcome the channel.
                 for key,value in refchannel.data.items():
-                    try:
-                        channelinfo.data[key] = value.replace(refchannel.channelkey,channelinfo.channelkey)
-                    except Exception:
-                        pass
-                if channelinfo.is_welcomed():
-                    for client in self.clients:
-                        channelinfo.welcome(client)
+                    if value:
+                        channelinfo.data[key] = replaceChannel(value,refchannel.channelkey,channelinfo.channelkey)
+                for client in self.clients:
+                    channelinfo.welcome(client)
+                print("Channel "+channelname+ " already joined. Added and welcomed. Data: %s"%(channelinfo.data,))
                 return True
             else:
                 # find a connection to use
@@ -86,10 +87,10 @@ class TMoohIUser(TMoohIStatTrack):
                         self.channelsByName[channelinfo.cluster].setdefault(channelinfo.channelname,[]).append(channelinfo)
                         return True
                     except (NotConnectedError, TooManyChannelsError) as e:
-                        self.logger.debug(eventmessage("channel","Couldnt join channel %s: %s."%(channel,e)))
+                        self.logger.debug(eventmessage("channel","Couldn't join channel %s: %s."%(channel,e)))
                         pass
         else:
-            self.logger.debug(eventmessage("channel","Couldnt join channel %s: ratelimit exceeded."%(channel,)))
+            self.logger.debug(eventmessage("channel","Couldn't join channel %s: ratelimit exceeded."%(channel,)))
         # If we reach this, all available connections (if any) were unable to send the join or the request was ratelimited.
         # We create a new one and send the join to the resendqueue. This is ratelimited with 1 connection request per second.
         now = time.time()
@@ -126,7 +127,7 @@ class TMoohIUser(TMoohIStatTrack):
         for channel in channels:
             if channel[0] != "#":
                 raise TypeError("PRIVMSG: Invalid channel %s."%(channel,))
-            channelname = channel.split("@",1)[0]
+            channelname = channel.split(self.parent.parent.config["cluster-seperator"],1)[0]
             clusterinfo = self.parent.getClusterInfo(channel,self.oauth)
             for conn in self.connections[clusterinfo[0]]:
                 try:
@@ -152,7 +153,7 @@ class TMoohIUser(TMoohIStatTrack):
         try:
             return self.privmsg(message)
         except Exception:
-            client.request.sendall(b":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PRIVMSG command. Use PRIVMSG #channel :message or PRIVMSG #channel@cluster :message where cluster is either 'normal', 'event' or 'group'\r\n")
+            client.request.sendall(b":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PRIVMSG command. Use PRIVMSG #channel :message or PRIVMSG #channel%scluster :message where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
     
     def handle_client_cap(self,client,message):
         client.request.sendall(b":tmi.twitch.tv 410 tmi.twitch.tv :Invalid CAP command. TMoohI always runs twitch.tv/commands and twitch.tv/tags\r\n")
@@ -173,10 +174,10 @@ class TMoohIUser(TMoohIStatTrack):
                     allok = ok and allok
             except TypeError:
                 self.logger.exception()
-                client.request.sendall(b":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel@cluster where cluster is either 'normal', 'event' or 'group'\r\n")
+                client.request.sendall(b":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
             return allok
         else:
-            client.request.sendall(b":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel@cluster where cluster is either 'normal', 'event' or 'group'\r\n")
+            client.request.sendall(b":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
     
     def handle_client_part(self,client,message):
         ok = True
@@ -190,7 +191,7 @@ class TMoohIUser(TMoohIStatTrack):
         else:
             ok = False
         if not ok:
-            client.request.sendall(b":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PART command. Use PART #channel or PART #channel@cluster where cluster is either 'normal', 'event' or 'group'\r\n")
+            client.request.sendall(b":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PART command. Use PART #channel or PART #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],))
         return True
         
     
@@ -257,37 +258,25 @@ class TMoohIUser(TMoohIStatTrack):
         if message[STATE_PREFIX] == ownhostmask and message[STATE_COMMAND] in ["PRIVMSG",]:
             # eat messages from "myself".
             return
-        if message[STATE_COMMAND] in ["001","002","003","004","375","372","376","PONG"]:
-            # eat numeric "welcome" messages as well as pongs.
+        if message[STATE_COMMAND] in ["001","002","003","004","375","372","376","PONG","CAP"]:
+            # eat numeric "welcome" messages as well as pongs and caps.
             return
+        if message[STATE_COMMAND] == "GLOBALUSERSTATE":
+            self.globaluserstate = message[0]
         params = message[STATE_PARAM]
         if message[STATE_COMMAND] == "PRIVMSG":
             self.stats["TMIMessages"] += 1
         # we find the bound channels and replace them.
-        for i in range(len(params)):
-            if params[i] in self.channelsByName[connection.clustername]:
-                messagemeta = " ".join([x for x in message[1:STATE_PARAM] if x])
-                # replace the param for each channel and dispatch
-                for targetchannelinfo in self.channelsByName[connection.clustername][params[i]]:
+        for param in params:
+            if param in self.channelsByName[connection.clustername]:
+                for targetchannelinfo in self.channelsByName[connection.clustername][param]:
+                    # replace the param for each channel and dispatch
                     # if this is part of the welcoming process of the channel, we dont sent it, but keep it back for now.
-                    params[i] = targetchannelinfo.channelkey
-                    messageparams = " ".join(params)
-                    messagetext = messagemeta
-                    if messageparams:
-                        messagetext += " "+messageparams 
-                    if message[STATE_TRAILING]:
-                        messagetext += " "+message[STATE_TRAILING]
-                    if message[STATE_COMMAND] in targetchannelinfo.data:
-                        waswelcomed = targetchannelinfo.is_welcomed()
-                        print("got data message",message)
-                        targetchannelinfo.setData(message)
-                        # if the channel is welcomed now, we welcome the clients
-                        if ((not waswelcomed) and targetchannelinfo.is_welcomed()):
-                            for client in self.clients:
-                                targetchannelinfo.welcome(client)
-                            continue
-                    if targetchannelinfo.is_welcomed():
-                        self.broadcast(messagetext)
+                    newmessage = replaceChannel(message, param, targetchannelinfo.channelkey)
+                    if newmessage[STATE_COMMAND] in targetchannelinfo.data:
+                        print("got data message",newmessage)
+                        targetchannelinfo.setData(newmessage)
+                    self.broadcast(newmessage[0])
                 return
         # no channelbound message. Just broadcast then.
         self.broadcast(message[0])
@@ -304,7 +293,31 @@ class TMoohIUser(TMoohIStatTrack):
     
     def welcome(self,client):
         client.request.sendall(":tmi.twitch.tv 001 {username} :Welcome, GLHF!\r\n:tmi.twitch.tv 002 {username} :Your host is tmi.twitch.tv\r\n:tmi.twitch.tv 003 {username} :This server is pretty old\r\n:tmi.twitch.tv 004 {username} :{buildinfo} loaded and running smoothly.\r\n:tmi.twitch.tv 375 {username} :-\r\n:tmi.twitch.tv 372 {username} :You are in a maze of dank memes, all alike.\r\n:tmi.twitch.tv 376 {username} :>\r\n".format(username=client.nick,buildinfo=self.parent.parent.BuildInfo).encode("utf-8"))
+        client.request.sendall(":tmi.twitch.tv CAP * ACK :twitch.tv/tags\r\n:tmi.twitch.tv CAP * ACK :twitch.tv/commands\r\n".encode("utf-8"))
+        if self.globaluserstate:
+            client.request.sendall((self.globaluserstate+"\r\n").encode("utf-8"))
         for channelkey,channelobj in self.channels.items():  # @UnusedVariable
-            if channelobj.is_welcomed():
-                channelobj.welcome(client)
+            channelobj.welcome(client)
         self.clients.append(client)
+
+
+def replaceChannel(ex, source, target):
+    copy = [None,
+            ex[STATE_V3],
+            ex[STATE_PREFIX],
+            ex[STATE_COMMAND],
+            [target if x==source else x for x in ex[STATE_PARAM]],
+            ex[STATE_TRAILING]]
+    message = ""
+    if copy[STATE_V3]:
+        message += copy[STATE_V3] + " "
+    if copy[STATE_PREFIX]:
+        message += copy[STATE_PREFIX] + " "
+    message += copy[STATE_COMMAND]
+    if copy[STATE_PARAM]:
+        message += " " + " ".join(copy[STATE_PARAM])
+    if copy[STATE_TRAILING]:
+        message += " " + copy[STATE_TRAILING]
+    
+    copy[0] = message
+    return copy

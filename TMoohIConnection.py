@@ -70,11 +70,11 @@ class TMoohIConnection(TMoohIStatTrack):
         self._recvthread = threading.Thread(target=self.listen)
         self._recvthread.start()
         self.logger.info(eventmessage("connect","Connecting to %s/%s for %s"%(self.ip, self.port, self.connid)))
+        self.sendraw("CAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands")
         if self.parent.oauth:
             self.sendraw("PASS %s"%(self.parent.oauth,))
         self.sendraw("USER %s %s %s :%s"%(self.parent.nick,self.parent.nick,self.parent.nick,self.parent.nick,))
         self.sendraw("NICK %s"%(self.parent.nick,))
-        self.sendraw("CAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands")
     
     def listen(self):
         try:
