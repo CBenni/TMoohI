@@ -1,4 +1,5 @@
 import json
+import copy
 import asyncio
 import threading
 
@@ -7,21 +8,22 @@ from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerF
 from MoohLog import statusmessage
 
 class TMoohIWebsocketServer:
-    def __init__(self, parent, host, port):
-        self.parent = parent
-        self.logger = parent.logger
+    def __init__(self, logger, host, port, defaultfilter = []):
+        self.logger = logger
         self.host = host
         self.port = port
+        
         
         self.server = None
         self.loop = None
         
         self.factory = WebSocketServerFactory()
-        self.factory.protocol = MyServerProtocol
+        self.factory.protocol = websocketlogger
         self.factory.connections = []
-        self.factory.parent = self.parent
         self.factory.server = self
         self.factory.logger = self.logger
+        self.factory.defaultfilter = defaultfilter
+        self.factory.neweststatus = None
         self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up!"))
         
         self.serverthread = threading.Thread(target = self.runserver)
@@ -53,17 +55,17 @@ class TMoohIWebsocketServer:
             self.server.close()
             self.loop.close()
 
-class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
+class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
     def onConnect(self, request):
         self.factory.logger.writers.append(self)
         self.level = 0
-        self.filters = []
+        self.filters = copy.deepcopy(self.factory.defaultfilter)
         print("Client connecting: {}".format(request.peer))
 
     def onOpen(self):
         print("WebSocket connection open.")
         # when opening a connection, send the current state
-        self.inner_write(statusmessage(self.factory.parent.manager.serialize()))
+        self.inner_write(statusmessage(self.factory.neweststatus))
 
     def onMessage(self, payload, isBinary):
         if isBinary:
@@ -83,6 +85,8 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
 
     def inner_write(self,message):
         print("sending message via websocket")
+        if message.type == "status":
+            self.factory.neweststatus = message.data
         self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
 
     def onClose(self, wasClean, code, reason):

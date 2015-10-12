@@ -35,7 +35,7 @@ class MoohLogger(object):
         
 class logwriter(object):
     def __init__(self):
-        self.filters = []
+        self.filters = [{}]
     def write(self,message):
         if message.meets_filter(self.filters):
             self.inner_write(message)
@@ -193,8 +193,8 @@ class statusmessage(logmessage):
 if __name__ == "__main__":
     l = MoohLogger()
     c = consolewriter()
-    c.filters.append({"event":"test","level__ge":10})
-    c.filters.append({"bro_lt":"1337"})
+    c.filters = [{"event":"test","level__ge":10}]
+    #c.filters.append({"bro_lt":"1337"})
     l.writers.append(c)
     
     l.debug(eventmessage("test","testing events"))
