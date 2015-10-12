@@ -21,7 +21,7 @@ from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 # Note that it will not interact with IRC directly
 class TMoohIServer():
     def __init__(self,config):
-        self.BuildInfo = BuildCounter.getVersionInfo("TMoohI",["py"])
+        self.BuildInfo = BuildCounter.getVersionInfo("TMoohI",["py","html","css","js"])
         
         self.quitting = False
         #config options
