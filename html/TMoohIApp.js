@@ -31,7 +31,6 @@ TMoohIApp.filter("loglevel",function() {
 		var exactlevel = parseInt(input);
 		var levelname = "Unknown ("+exactlevel+")";
 		for(var level in LEVELS) {
-			console.log("Comparing exactlevel "+exactlevel+" to level "+level);
 			if(level <= exactlevel) {
 				levelname = LEVELS[level];
 			}
