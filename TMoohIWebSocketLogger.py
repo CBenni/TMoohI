@@ -4,6 +4,7 @@ import threading
 
 import MoohLog
 from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
+from MoohLog import statusmessage
 
 class TMoohIWebsocketServer:
     def __init__(self, parent, host, port):
@@ -29,7 +30,7 @@ class TMoohIWebsocketServer:
     def quit(self):
         self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shutting down!"))
         self.server.close()
-        self.loop.call_soon_threadsafe(self.loop.stop) 
+        self.loop.call_soon_threadsafe(self.loop.stop)
         self.loop.stop()
     
     def broadcast(self,level,message):
@@ -61,7 +62,8 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
 
     def onOpen(self):
         print("WebSocket connection open.")
-        self.inner_write(json.dumps(self.factory.parent.manager._statsTracker.oldval))
+        # when opening a connection, send the current state
+        self.inner_write(statusmessage(self.factory.parent.manager.serialize()))
 
     def onMessage(self, payload, isBinary):
         if isBinary:
@@ -71,6 +73,9 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
             try:
                 jsondecoded = json.loads(payload.decode('utf8'))
                 if type(jsondecoded) == list:
+                    for x in jsondecoded:
+                        if type(x) != dict:
+                            return
                     self.filters = jsondecoded
                     print("Filter updated to %s"%(self.filters))
             except:
@@ -78,7 +83,7 @@ class MyServerProtocol(WebSocketServerProtocol,MoohLog.logwriter):
 
     def inner_write(self,message):
         print("sending message via websocket")
-        self.sendMessage(str(message).encode("utf-8"))
+        self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
 
     def onClose(self, wasClean, code, reason):
         self.factory.logger.writers.remove(self)

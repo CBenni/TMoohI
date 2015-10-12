@@ -9,11 +9,11 @@ class TMoohIChangeTracker:
         # insert: 1
         # change: 2
         # delete: 3
-        self.LS_NONE = 0#"none"
-        self.LS_INSERT = 1#"insert"
-        self.LS_CHANGE = 2#"change"
-        self.LS_REPLACE = 3#"replace"
-        self.LS_REMOVE = 4#"delete"
+        self.LS_NONE = "none"
+        self.LS_INSERT = "insert"
+        self.LS_CHANGE = "change"
+        self.LS_REPLACE = "replace"
+        self.LS_REMOVE = "delete"
         
         self.oldval = val
 

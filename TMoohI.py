@@ -60,9 +60,9 @@ class TMoohIServer():
         
         self.logger = MoohLogger()
         self.filelogger = filewriter(self.config["logfile"])
-        self.filelogger.filters = [{ "level": MoohLogger.DEBUG }]
+        self.filelogger.filters = [{ "level__ge": MoohLogger.DEBUG }]
         self.consolelogger = consolewriter()
-        self.consolelogger.filters = [{ "level": MoohLogger.DEBUG }]
+        self.consolelogger.filters = [{ "level__ge": MoohLogger.DEBUG }]
         self.logger.writers.append(self.filelogger)
         self.logger.writers.append(self.consolelogger)
         self.logger.info(eventmessage("general","%s loaded"%(self.BuildInfo,)))

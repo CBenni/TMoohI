@@ -5,6 +5,12 @@
 	<title>wstest</title>
 	<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 	<script>
+	var LS_NONE = "none";
+	var LS_INSERT = "insert";
+    var LS_CHANGE = "change";
+    var LS_REPLACE = "replace";
+    var LS_REMOVE = "delete";
+	
 	function log(x){
 		var txt = $("#receiver");
 		console.log(x)
@@ -14,10 +20,10 @@
 	w = new WebSocket('ws://localhost:3141');
 	w.onopen = function(e) {
 		log("Connected!")
-		w.send('[{"level":0},{"type":"stats"}]')
+		w.send('[{"level__ge":0},{"type":"stats"}]')
 	}
 	w.onmessage = function(e) {
-		//log(e)
+		message = JSON.parse(e.data)
 		log(e.data)
 	}
 	
@@ -45,7 +51,7 @@
 </head>
 
 <body>
-	<input type="text" id="sender" value='[{"level":0},{"type":"stats"}]' /><br>
+	<input type="text" id="sender" value='[{"level__ge":0},{"type":"stats"}]' /><br>
 	<textarea id="receiver" style="width: 100%; height: 100%;"></textarea>
 </body>
 

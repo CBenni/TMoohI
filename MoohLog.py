@@ -12,7 +12,7 @@ class MoohLogger(object):
     ERROR = 30
     EXCEPTION = 40
     FATAL = 50
-    LEVELS = { 0:"DEBUG", 10:"INFO", 20:"WARNING", 30:"ERROR", 40:"EXCEPTION", 50:"FATAL" }
+    LEVELS = { DEBUG:"DEBUG", INFO:"INFO", WARNING:"WARNING", ERROR:"ERROR", EXCEPTION:"EXCEPTION", FATAL:"FATAL" }
     def __init__(self):
         self.writers = []
     def log(self,level,data):
@@ -62,41 +62,80 @@ class consolewriter(logwriter):
         except:
             pass
 
+
+MOOHLOGFILTERS = {
+    "ge": lambda a,b: float(a)>=float(b),
+    "gt": lambda a,b: float(a)>float(b),
+    "le": lambda a,b: float(a)<=float(b),
+    "lt": lambda a,b: float(a)<float(b),
+    "lt": lambda a,b: float(a)<float(b),
+    "eq": lambda a,b: float(a)==float(b),
+    "ne": lambda a,b: float(a)==float(b),
+    "isnull": lambda a,b: (a==None) == b,
+    "exact": lambda a,b: a==b,
+    "iexact": lambda a,b: a.lower()==b.lower(),
+    "containedby": lambda a,b: a in b,
+    "icontainedby": lambda a,b: a.lower() in b.lower(),
+    "contains": lambda a,b: b in a,
+    "icontains": lambda a,b: b.lower() in a.lower(),
+    "startswith": lambda a,b: a.startswith(b),
+    "endswith": lambda a,b: a.endswith(b),
+}
+
+
+def filter_value(key,val,data):
+    # keys starting with ! invert the filter result
+    invert = key[0] == "!"
+    if invert:
+        key = key[1:]
+    
+    try:
+        key_name, query = key.rsplit("__",1)
+    except Exception:
+        key_name = key
+        query = "exact"
+        
+    keys = key_name.split(".")
+    
+    try:
+        for k in keys:
+            data = data[k]
+    except Exception:
+        return invert
+    
+    try:
+        return MOOHLOGFILTERS[query](data,val) ^ invert
+    except Exception:
+        pass
+    try:
+        return (val == data) ^ invert
+    except Exception:
+        return invert
+
+
+def filter_dict(data,f):
+    # list items are ORed
+    for conj in f:
+        # dict items are ANDed
+        allok = True
+        for key, val in conj.items():
+            if not filter_value(key, val, data):
+                allok = False
+        if allok:
+            return True
+    return False
+
 class logmessage(object):
-    def __init__(self,data,level=0):
-        self.data = data
+    def __init__(self,level=0):
         self.level = level
-        self.format = "%s"
         self.type = "generic"
     
     def meets_filter(self,filters):
-        for disjunction in filters:
-            fits = True
-            for constraint,value in disjunction.items():
-                f = constraint.lower()
-                inv = f.startswith("!")
-                if inv:
-                    f=f[1:]
-                #print("checking filter %s with value %s on data %s/level %s/type %s"%(f,value,self.data,self.level,self.type))
-                
-                # by XORing (!=) with the inversion value, we can invert the result
-                if f=="level":
-                    fits &= (self.level>=int(value)) ^ inv
-                elif f=="type":
-                    fits &= (self.type==value) ^ inv
-                elif f in self.data:
-                    # check if regex or not (regex starts+ends with /)
-                    m = re.match("/([^/])/(i?)",value)
-                    if m:
-                        # check the regex in m.group(1)
-                        fits &= bool( re.search( m.group(1), self.data[f], re.IGNORECASE if m.group(2) else 0 ) ) ^ inv
-                    else:
-                        fits &= (self.data[f] == value) ^ inv
-                if not fits:
-                    break
-            if fits:
-                return True
-        return False
+        return filter_dict(self.serialize(), filters)
+    
+    def inner_str(self):
+        raise NotImplementedError
+    
     def __str__(self):
         levelname = ""
         maxl = -10
@@ -105,26 +144,61 @@ class logmessage(object):
                 if l>maxl:
                     levelname = "[%s] "%(n,)
                     maxl = l
-        return levelname+(self.format%self.data)
+        return levelname+self.inner_str()
+    
+    def serialize(self):
+        return self.__dict__
 
 class chatmessage(logmessage):
     def __init__(self,server,ip,channel,channelid,nick,message):
-        super(chatmessage,self).__init__({ "server":server, "ip":ip, "channel":channel,"id":channelid,"nick":nick,"message":message })
+        self.server = server
+        self.ip = ip
+        self.channel = channel
+        self.id = channelid
+        self.nick = nick
+        self.message = message
         self.type = "chat"
-        self.format = "[%(server)s (%(ip)s)] #%(channel)s(%(id)s) <%(nick)s> %(message)s"
+    
+    def inner_str(self):
+        return "[{server}] #{channel} <{nick}>: {message}".format(
+            server = self.server,
+            channel = self.channel,
+            nick = self.nickname,
+            message = self.message 
+        )
         
 def reploauth(m):
     return "oauth:(%d)"%(len(m.group(1)),)
 class eventmessage(logmessage):
     def __init__(self,event,message):
-        message = re.sub("oauth:([a-z0-9]+)",reploauth,message)
-        super(eventmessage,self).__init__({ "event":event, "message":message })
+        self.event = event
+        self.message = re.sub("oauth:([a-z0-9]+)",reploauth,message)
         self.type = "event"
-        self.format = "[%(event)s] %(message)s"
+    
+    def inner_str(self):
+        return "[%s] %s"%(self.event,self.message)
 
 
-class statsmessage(logmessage):
+class statusmessage(logmessage):
     def __init__(self,stats):
-        super(statsmessage,self).__init__({ "stats":json.dumps(stats) })
-        self.type = "stats"
-        self.format = "%(stats)s"
+        self.data = stats
+        self.type = "status"
+    
+    def inner_str(self):
+        return json.dumps(self.data)
+
+
+
+
+if __name__ == "__main__":
+    l = MoohLogger()
+    c = consolewriter()
+    c.filters.append({"event":"test","level__ge":10})
+    c.filters.append({"bro_lt":"1337"})
+    l.writers.append(c)
+    
+    l.debug(eventmessage("test","testing events"))
+    l.error(eventmessage("test","testing events"))
+    l.fatal(eventmessage("test","testing events"))
+    
+    l.info(statusmessage({"dank":"memes","bro":420}))

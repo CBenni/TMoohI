@@ -34,7 +34,6 @@ class TMoohIManager(TMoohIStatTrack):
         self._queuethread = threading.Thread(target=self.handleResendQueue)
         self._queuethread.start()
         
-        self._statsTracker = TMoohIChangeTracker(self.serialize())
         self._updatestatusthread = threading.Thread(target=self.updateStatus)
         self._updatestatusthread.start()
     
@@ -101,7 +100,7 @@ class TMoohIManager(TMoohIStatTrack):
                 return ("group",["199.9.253.119:443","199.9.253.119:6667","199.9.253.119:80","199.9.253.120:443","199.9.253.120:6667","199.9.253.120:80"])
             else:
                 # either normalchat or eventchat
-                checkchannel = channel
+                checkchannel = info[0]
         else:
             if "normalchat".startswith(info[1].lower()):
                 checkchannel = self.parent.config["ref-channel-normal"]
@@ -188,10 +187,8 @@ class TMoohIManager(TMoohIStatTrack):
         while not self.quitting:
             if cnt%10==0:
                 try:
-                    serialized = self._statsTracker.update(self.serialize())
-                    #print(serialized)
-                    #print(json.dumps(serialized))
-                    self.logger.log(-1,MoohLog.statsmessage(serialized))
+                    #serialized = self._statsTracker.update(self.serialize())
+                    self.logger.log(1,MoohLog.statusmessage(self.serialize()))
                 except Exception:
                     self.logger.exception()
             cnt += 1

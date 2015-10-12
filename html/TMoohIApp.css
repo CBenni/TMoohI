@@ -1,0 +1,39 @@
+.logline {
+	margin-bottom: 3px;
+}
+
+.loglevel, .logtype, .logevent {
+	padding: 3px;
+	border-radius: 5px;
+	background-color: #CCCCCC;
+	margin: 0 2px;
+}
+
+.logtype-event {
+	background-color: orange;
+}
+
+#logger {
+	max-height: 300px;
+	overflow: auto;
+}
+
+.loglevel-debug {
+	background-color: #8080ff;
+}
+
+.loglevel-info {
+	background-color: #ffff80;
+}
+
+.loglevel-warning {
+	background-color: #cc9900;
+}
+
+.loglevel-error {
+	background-color: #ff0000;
+}
+
+.loglevel-fatal {
+	background-color: #ff0000;
+}
