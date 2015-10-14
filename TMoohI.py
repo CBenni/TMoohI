@@ -98,7 +98,7 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
         self.commandsent = 0
         self.stats = {
             "since": time.time(),
-            "sent": self.getCommandsSent
+            "sent": self.getCommandsSent,
         }
         while not self.server.TMoohIParent.quitting:
             try:

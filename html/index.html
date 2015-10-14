@@ -17,22 +17,22 @@
 		<div flex="15" flex-md="5" hide-sm></div>
 		<!-- content -->
 		<div class="content" layout="column" flex="70" flex-md="90" flex-sm="100">
-			<h2 flex>TMoohI Status</h2>
+			<h2 flex>{{status.build.projectname}} Status</h2>
+			<span flex="30">Version: {{status.build.data.version}} (Build {{status.build.data.build}})</span>
+			<span flex="30">Uptime: <span time-since="status.since"></span></span>
 			<div id="logger" flex scroll-to-bottom>
 				<div class="logline" ng-repeat="logline in loglines">
 					<span
-						class="loglevel loglevel-{{logline.level | loglevel | lowercase}}">{{logline.level
-						| loglevel}}</span> <span class="logtype logtype-{{logline.type}}">{{logline.type}}</span>
-					<span class="logevent logevent-{{logline.event}}"
-						ng-show="logline.event != undefined">{{logline.event}}</span> <span
-						class="logmessage logmessage-{{logline.type}}">{{logline.message}}</span>
+						class="loglevel loglevel-{{logline.level | loglevel | lowercase}}">{{logline.level | loglevel}}</span> 
+						<span class="logtype logtype-{{logline.type}}">{{logline.type}}</span>
+					<span class="logevent logevent-{{logline.event}}" ng-show="logline.event != undefined">{{logline.event}}</span> 
+					<span class="logmessage logmessage-{{logline.type}}">{{logline.message}}</span>
 				</div>
 			</div>
 			<div flex layout="column">
 				<h3>Users</h3>
-				<div class="user" ng-repeat="(user, info) in status.users" flex
-					layout="row">
-					<div flex="100">{{info.nick}}</div>
+				<div class="user" ng-repeat="(user, info) in status.users" flex layout="row">
+					<div flex="30" style="min-width: 300px">{{info.nick}}</div>
 				</div>
 			</div>
 		</div>

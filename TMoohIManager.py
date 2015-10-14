@@ -23,7 +23,7 @@ class TMoohIManager(TMoohIStatTrack):
         self.parent = parent
         self.logger = parent.logger
         
-        self.stats = { "users":self.users, "queue":self.getResendQueueLength, "since":time.time() }
+        self.stats = { "users":self.users, "queue":self.getResendQueueLength, "since":time.time(), "build": self.parent.BuildInfo.__dict__ }
         
         # contains all the messages that couldnt be sent at the given point in time as a tuple (user,client,message)
         self.joinqueue = []

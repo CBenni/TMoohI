@@ -62,6 +62,51 @@ TMoohIApp.directive('scrollToBottom', function () {
 	}
 });
 
+
+TMoohIApp.directive('timeSince', ["$interval", function ($interval) {
+	return {
+		scope: {
+			timeSince: "="
+		},
+		link: function ($scope, element, attrs) {
+			var startTime = parseFloat($scope.timeSince);
+			var interval = $interval(updateTime, 1000);
+			
+			// used to update the UI
+			function updateTime() {
+				startTime = parseFloat($scope.timeSince);
+				element.text(formatTimeSpan(new Date().getTime()/1000.0 - startTime));
+			}
+			updateTime();
+			
+			element.on('$destroy', function() {
+				$interval.cancel(interval);
+			});
+		}
+	}
+}]);
+
+function twoDigitNumber(number) {
+	if (number<=9) return "0"+number;
+	return ""+number;
+}
+
+function formatTimeSpan(dt) {
+	var days = Math.floor(dt/86400);
+	var hrs = Math.floor((dt - days * 86400) / 3600);
+	var mins = Math.floor((dt - days * 86400 - hrs * 3600) / 60);
+	var secs = Math.floor(dt - days * 86400 - hrs * 3600 - mins * 60);
+	result = "";
+	if(days > 1) {
+		result += days + " days ";
+	}
+	else if(days == 1) {
+		result += days + " day ";
+	}
+	result += twoDigitNumber(hrs)+":"+twoDigitNumber(mins)+":"+twoDigitNumber(secs);
+	return result;
+}
+
 function isScrollBottom(element) {
 	var elementHeight = element.outerHeight(); 
 	var scrollPosition = element[0].scrollHeight - element.scrollTop();
