@@ -51,7 +51,7 @@ class filewriter(logwriter):
         try:
             with codecs.open(datetime.datetime.now().strftime(self.fileformat), "a", "utf-8") as myfile:
                 myfile.write(str(message)+"\r\n")
-        except:
+        except Exception:
             pass
 class consolewriter(logwriter):
     def __init__(self):
@@ -59,7 +59,7 @@ class consolewriter(logwriter):
     def inner_write(self,message):
         try:
             print(str(message))
-        except:
+        except Exception:
             pass
 
 

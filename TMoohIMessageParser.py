@@ -32,7 +32,7 @@ import re
 def getNickName(userkey):
     try:
         return re.match(":(\w+)",userkey).group(1)
-    except:
+    except Exception:
         return ""
 
 def getIRCv3Info(ex):

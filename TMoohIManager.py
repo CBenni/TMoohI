@@ -72,7 +72,7 @@ class TMoohIManager(TMoohIStatTrack):
     def disconnect(self, client):
         try:
             client.user.clients.remove(client)
-        except:
+        except Exception:
             self.logger.exception()
         
     def getClusterInfo(self,channel,oauth=None):
@@ -148,10 +148,12 @@ class TMoohIManager(TMoohIStatTrack):
         return data
         
     def handleResendQueue(self):
-        while True:
+        while not self.quitting:
             try:
                 # in each iteration, handle the joinQueue
                 while self.joinqueue:
+                    if self.quitting:
+                        return
                     # dequeue messages and handle them until we meet one that we cannot handle yet
                     message = self.joinqueue.pop(0)
                     user = message["user"]
@@ -171,7 +173,7 @@ class TMoohIManager(TMoohIStatTrack):
                 # then handle the messageQueues
                 for userkey,usr in self.users.items():
                     usr.handleMessageQueue()
-                time.sleep(0.5)
+                time.sleep(0.1)
             except Exception:
                 self.logger.exception()
     

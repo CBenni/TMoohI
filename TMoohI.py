@@ -7,6 +7,7 @@ import time
 import json
 import yaml
 import argparse
+import threading
 import socketserver
 
 import TMoohIWebSocketLogger
@@ -77,11 +78,16 @@ class TMoohIServer():
         self.manager.quit()
         self.websocketserver.quit()
         self.server.shutdown()
+        self.server.server_close()
         
     def run(self):
         self.server = ThreadedTCPServer((self.config["host"],self.config["port"]), TMoohITCPHandler)
+        self.server.daemon_threads = True
         self.server.TMoohIParent = self
         self.server.serve_forever()
+        #server_thread = threading.Thread(target=self.server.serve_forever)
+        #server_thread.daemon = True
+        #server_thread.start()
 
     def __del__(self):
         self.logger.info(eventmessage("general","Stopped TMoohI server."))
@@ -100,11 +106,14 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
             "since": time.time(),
             "sent": self.getCommandsSent,
         }
+        self.data = None;
         while not self.server.TMoohIParent.quitting:
             try:
                 self.data = self.request.recv(1024)
                 if not self.data:
                     # client disconnected
+                    break
+                if self.server.TMoohIParent.quitting:
                     break
                 self.server.TMoohIParent.logger.debug(eventmessage("client","Got raw client message from %s (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
                 self.buffer += self.data.decode("utf-8")
@@ -153,7 +162,6 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
             self.server.TMoohIParent.logger.debug(eventmessage("client","Client %s disconnected (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
         else:
             self.server.TMoohIParent.logger.debug(eventmessage("client","Client %s disconnected (sock ID %d)"%(self.client_address[0],self.client_address[1])))
-        # this part is executed when the client disconnects
     
     def getUptime(self):
         return time.time()-self.starttime
@@ -171,9 +179,12 @@ def main(argv):
     while uninterrupted:
         try:
             srv.run()
+            #while True:
+            #    time.sleep(1000)
         except (KeyboardInterrupt,SystemExit):
             uninterrupted = False
             srv.logger.info(eventmessage("general","Stopping TMoohI server."))
+            # create a quitter thread
             srv.quit()
             break
         except Exception:

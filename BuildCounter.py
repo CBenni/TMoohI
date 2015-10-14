@@ -8,7 +8,7 @@ def getVersionInfo(projectname,extensions=None):
         with open('%s_version.json'%(projectname,), 'a+') as f:
             f.seek(0)
             bi.data = json.load(f)
-    except:
+    except Exception:
         pass
     h = hashlib.md5()
     for root, directories, filenames in os.walk('.'):
