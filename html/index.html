@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html ng-app="TMoohIApp">
 <head>
-<meta charset="utf-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TMoohI status</title>
-
-<link rel="stylesheet"
-	href="https://ajax.googleapis.com/ajax/libs/angular_material/0.11.2/angular-material.min.css">
-<link rel="stylesheet" href="TMoohIApp.css">
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>TMoohI status</title>
+	
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.11.2/angular-material.min.css">
+	<link rel="stylesheet" href="TMoohIApp.css">
 </head>
 
 <body ng-controller="StatusController as statusCtrl">
@@ -30,9 +29,22 @@
 				</div>
 			</div>
 			<div flex layout="column">
-				<h3>Users</h3>
-				<div class="user" ng-repeat="(user, info) in status.users" flex layout="row">
-					<div flex="30" style="min-width: 300px">{{info.nick}}</div>
+				<h2>Users</h2>
+				<div class="user" ng-repeat="(user, info) in status.users" flex layout="column">
+					<h3>{{info.nick}}</h3>
+					<div>
+						<h4>Channels</h4>
+						<div ng-repeat="channel in info.channels">
+							<div ng-click="showChildren = !showChildren">
+								<div>
+									{{channel.name}} ({{channel.cluster}})
+								</div>
+								<div ng-show="showChildren">
+									<div>User badges: <span ng-bind-html="channel.data['USERSTATE'] | userstate"></span></div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -42,8 +54,10 @@
 	<script src="https://code.jquery.com/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.6/angular-sanitize.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-aria.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angular_material/0.11.2/angular-material.min.js"></script>
+	<script src="parseircmessage.js"></script>
 	<script src="TMoohIApp.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ import threading
 
 import MoohLog
 from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
-from MoohLog import statusmessage
+from MoohLog import statusmessage, eventmessage, MoohLogger
 
 class TMoohIWebsocketServer:
     def __init__(self, logger, host, port, defaultfilter = []):
@@ -60,35 +60,58 @@ class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
         self.factory.logger.writers.append(self)
         self.level = 0
         self.filters = copy.deepcopy(self.factory.defaultfilter)
-        print("Client connecting: {}".format(request.peer))
+        self.factory.logger.debug(eventmessage("websocket","Websocket connecting: {}".format(request.peer)))
 
     def onOpen(self):
-        print("WebSocket connection open.")
+        self.factory.logger.debug(eventmessage("websocket","WebSocket connection open."))
         # when opening a connection, send the current state
         self.inner_write(statusmessage(self.factory.neweststatus))
 
     def onMessage(self, payload, isBinary):
         if isBinary:
-            print("Binary message received: {} bytes".format(len(payload)))
+            self.factory.logger.debug(eventmessage("websocket","Binary websocket message received: {} bytes".format(len(payload))))
         else:
-            print("Text message received: {}".format(payload.decode('utf8')))
+            self.factory.logger.debug(eventmessage("websocket","Websocket text message received: {}".format(payload.decode('utf8'))))
             try:
-                jsondecoded = json.loads(payload.decode('utf8'))
-                if type(jsondecoded) == list:
-                    for x in jsondecoded:
-                        if type(x) != dict:
-                            return
-                    self.filters = jsondecoded
-                    print("Filter updated to %s"%(self.filters))
-            except:
-                pass
+                res = payload.decode('utf8').split(" ",1)
+                command = res[0]
+                data = ""
+                if len(res) == 2:
+                    data = res[1]
+                    jsondecoded = json.loads(data)
+                if command == "SETFILTER":
+                    if data:
+                        ok = True
+                        if type(jsondecoded) == list:
+                            for x in jsondecoded:
+                                if type(x) != dict:
+                                    ok = False
+                            if ok:
+                                self.filters = jsondecoded
+                                
+                                response = eventmessage("websocket","Filter updated to %s"%(self.filters,))
+                                response.level = MoohLogger.DEBUG
+                                self.inner_write(response)
+                        else:
+                            ok = False
+                        if not ok:
+                            response = eventmessage("websocket","Could not process filter %s"%(data,))
+                            response.level = MoohLogger.ERROR
+                            self.inner_write(response)
+                    else:
+                        response = eventmessage("websocket","Could not process empty filter")
+                        response.level = MoohLogger.ERROR
+                        self.inner_write(response)
+                else:
+                    response = eventmessage("websocket","Unknown command %s"%(command,))
+                    response.level = MoohLogger.ERROR
+                    self.inner_write(response)
+            except Exception:
+                self.factory.logger.exception()
 
     def inner_write(self,message):
-        print("sending message via websocket")
-        if message.type == "status":
-            self.factory.neweststatus = message.data
         self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
 
     def onClose(self, wasClean, code, reason):
         self.factory.logger.writers.remove(self)
-        print("WebSocket connection closed: {}".format(reason))
+        self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed: {}".format(reason)))

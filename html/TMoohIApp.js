@@ -1,4 +1,4 @@
-var TMoohIApp = angular.module("TMoohIApp",['ngMaterial']);
+var TMoohIApp = angular.module("TMoohIApp",['ngSanitize','ngMaterial']);
 
 LEVELS = { 0:"DEBUG", 10:"INFO", 20:"WARNING", 30:"ERROR", 40:"EXCEPTION", 50:"FATAL" }
 
@@ -11,7 +11,7 @@ TMoohIApp.controller("StatusController", ["$scope", function($scope){
 	
 	self.websocket = new WebSocket('ws://localhost:3141');
 	self.websocket.onopen = function(e) {
-		self.websocket.send('[{"level__ge":0},{"type":"stats"}]')
+		self.websocket.send('SETFILTER [{"level__ge":0},{"type":"stats"}]')
 	}
 	self.websocket.onmessage = function(e) {
 		var message = JSON.parse(e.data);
@@ -36,6 +36,24 @@ TMoohIApp.filter("loglevel",function() {
 			}
 		}
 		return levelname;
+	}
+});
+
+TMoohIApp.filter("userstate",function($sce,$http) {
+	var knownuserstates = {};
+	var knownalmostuserstates = {};
+	return function(input, defaultValue) {
+		if(knownuserstates[input[0]]) {
+			return $sce.trustAsHtml(knownuserstates[input[0]]);
+		} else {
+			getBadges(input,$http).then(function(data){
+				knownuserstates[input[0]] = data;
+			},function(data){});
+			if(!knownalmostuserstates[input[0]]) {
+				knownalmostuserstates[input[0]] = getBadges(input)
+			}
+			return $sce.trustAsHtml(knownalmostuserstates[input[0]]);
+		}
 	}
 });
 
