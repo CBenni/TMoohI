@@ -4,52 +4,53 @@
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>TMoohI status</title>
-	
+	<title>TMoohI Status</title>
+
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.11.2/angular-material.min.css">
 	<link rel="stylesheet" href="TMoohIApp.css">
 </head>
 
 <body ng-controller="StatusController as statusCtrl">
-	<div class="page" layout="row">
-		<!-- left margin -->
-		<div flex="15" flex-md="5" hide-sm></div>
-		<!-- content -->
-		<div class="content" layout="column" flex="70" flex-md="90" flex-sm="100">
-			<h2 flex>{{status.build.projectname}} Status</h2>
-			<span flex="30">Version: {{status.build.data.version}} (Build {{status.build.data.build}})</span>
-			<span flex="30">Uptime: <span time-since="status.since"></span></span>
-			<div id="logger" flex scroll-to-bottom>
-				<div class="logline" ng-repeat="logline in loglines">
-					<span
-						class="loglevel loglevel-{{logline.level | loglevel | lowercase}}">{{logline.level | loglevel}}</span> 
-						<span class="logtype logtype-{{logline.type}}">{{logline.type}}</span>
-					<span class="logevent logevent-{{logline.event}}" ng-show="logline.event != undefined">{{logline.event}}</span> 
-					<span class="logmessage logmessage-{{logline.type}}">{{logline.message}}</span>
-				</div>
-			</div>
-			<div flex layout="column">
-				<h2>Users</h2>
+	<div layout="column" layout-align="center center">
+		<div class="logo-container ">
+			<div class="logo">TMoohI</div>
+			<div class="sublogo">Version {{status.build.data.version}}  -  Build {{status.build.data.build}}</div>
+			<div>Uptime: <span time-since="status.since"></span></div>
+		</div>
+	</div>
+	<div layout="row" class="container">
+		<div layout="column" flex="25">
+			<md-whiteframe class="md-whiteframe-5dp" flex layout-margin layout-padding>
+				<md-subheader class="md-primary">Connected channels</md-subheader>
+				<md-divider></md-divider>
 				<div class="user" ng-repeat="(user, info) in status.users" flex layout="column">
-					<h3>{{info.nick}}</h3>
-					<div>
-						<h4>Channels</h4>
-						<div ng-repeat="channel in info.channels">
-							<div ng-click="showChildren = !showChildren">
-								<div>
-									{{channel.name}} ({{channel.cluster}})
-								</div>
-								<div ng-show="showChildren">
-									<div>User badges: <span ng-bind-html="channel.data['USERSTATE'] | userstate"></span></div>
-								</div>
-							</div>
+					<div class="channels md-title md-primary">{{info.nick}} - Channels</div>
+					<div ng-repeat="channel in info.channels">
+						<div>
+							<span ng-bind-html="channel.data['USERSTATE'] | userstate"></span> {{channel.name}} ({{channel.cluster}})
 						</div>
 					</div>
 				</div>
-			</div>
+			</md-whiteframe>
 		</div>
-		<!-- right margin -->
-		<div flex="15" flex-md="5" hide-sm></div>
+		<div layout="column" flex>
+			<md-whiteframe class="md-whiteframe-5dp" flex layout-margin layout-padding>
+				<md-subheader class="md-primary">Live feed</md-subheader>
+				<md-divider></md-divider>
+				<div scroll-to-bottom layout-padding id="logger">
+		      <div class="logline" ng-repeat="logline in loglines">
+		        <span
+		          class="md-caption loglevel loglevel-{{logline.level | loglevel | lowercase}}">{{logline.level | loglevel}}</span>
+		          <span class="md-caption logtype logtype-{{logline.type}}">{{logline.type}}</span>
+		        <span class="md-caption logevent logevent-{{logline.event}}" ng-show="logline.event != undefined">{{logline.event}}</span>
+		        <span class="md-caption logmessage logmessage-{{logline.type}}">{{logline.message}}</span>
+		      </div>
+		    </div>
+			</md-whiteframe>
+		</div>
+	</div>
+	<div layout="row" class="container">
+
 	</div>
 	<script src="https://code.jquery.com/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>

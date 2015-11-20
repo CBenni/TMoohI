@@ -1,26 +1,69 @@
+::-webkit-scrollbar {
+	width: 4px;
+	height: 4px;
+	transition: all 0.1s linear;
+	border-radius: 50%;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0);
+}
+
+::-webkit-scrollbar-track:hover {
+	background: rgba(0, 0, 0, .2);
+}
+
+::-webkit-scrollbar-thumb {
+	background: #a5abb1;
+}
+body {
+	background-color: #F0F0F0;
+}
+
+md-whiteframe {
+	background: #FFF;
+	min-height: 600px;
+}
+
+.logo-container {
+	text-align: center;
+	margin: 100px 0 40px;
+}
+.logo {
+	font-size: 112px;
+	font-weight: 200;
+	letter-spacing: -.01em;
+	line-height: 112px;
+	color: rgb(63,81,181);
+}
+.container {
+	padding: 0 300px;
+}
+
 .logline {
-	margin-bottom: 3px;
+	margin-bottom: 10px;
 }
 
 .loglevel, .logtype, .logevent {
-	padding: 3px;
-	border-radius: 5px;
-	background-color: #CCCCCC;
+	color: white;
+	padding: 5px;
+	border-radius: 3px;
+	background-color: #673Ab7;
 	margin: 0 2px;
 }
 
-.logtype-event {
-	background-color: orange;
-}
-
 #logger {
-	max-height: 400px;
-	height: 400px;
+	max-height: 520px;
+	height: 520px;
 	overflow: auto;
 }
 
+.logtype-event {
+	background-color: #3F51B5;
+}
+
 .loglevel-debug {
-	background-color: #8080ff;
+	background-color: #26a69a;
 }
 
 .loglevel-info {

@@ -8,7 +8,7 @@ TMoohIApp.controller("StatusController", ["$scope", function($scope){
 	$scope.test = "hi";
 	$scope.status = {};
 	$scope.loglines = [];
-	
+
 	self.websocket = new WebSocket('ws://localhost:3141');
 	self.websocket.onopen = function(e) {
 		self.websocket.send('SETFILTER [{"level__ge":0},{"type":"stats"}]')
@@ -89,14 +89,14 @@ TMoohIApp.directive('timeSince', ["$interval", function ($interval) {
 		link: function ($scope, element, attrs) {
 			var startTime = parseFloat($scope.timeSince);
 			var interval = $interval(updateTime, 1000);
-			
+
 			// used to update the UI
 			function updateTime() {
 				startTime = parseFloat($scope.timeSince);
 				element.text(formatTimeSpan(new Date().getTime()/1000.0 - startTime));
 			}
 			updateTime();
-			
+
 			element.on('$destroy', function() {
 				$interval.cancel(interval);
 			});
@@ -126,7 +126,7 @@ function formatTimeSpan(dt) {
 }
 
 function isScrollBottom(element) {
-	var elementHeight = element.outerHeight(); 
+	var elementHeight = element.outerHeight();
 	var scrollPosition = element[0].scrollHeight - element.scrollTop();
-	return (elementHeight == scrollPosition); 
+	return (elementHeight == scrollPosition);
 }
