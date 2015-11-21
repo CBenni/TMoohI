@@ -53,8 +53,64 @@ function splitWithTail(str,delim,count){
 	result.push(tail);
 	return result;
 }
+var _channelBadgeCache = {
+	"": {
+		"global_mod": {
+			"alpha": "http://chat-badges.s3.amazonaws.com/globalmod-alpha.png",
+			"image": "http://chat-badges.s3.amazonaws.com/globalmod.png",
+			"svg": "http://chat-badges.s3.amazonaws.com/globalmod.svg"
+		},
+		"admin": {
+			"alpha": "http://chat-badges.s3.amazonaws.com/admin-alpha.png",
+			"image": "http://chat-badges.s3.amazonaws.com/admin.png",
+			"svg": "http://chat-badges.s3.amazonaws.com/admin.svg"
+		},
+		"broadcaster": {
+			"alpha": "http://chat-badges.s3.amazonaws.com/broadcaster-alpha.png",
+			"image": "http://chat-badges.s3.amazonaws.com/broadcaster.png",
+			"svg": "http://chat-badges.s3.amazonaws.com/broadcaster.svg"
+		},
+		"mod": {
+			"alpha": "http://chat-badges.s3.amazonaws.com/mod-alpha.png",
+			"image": "http://chat-badges.s3.amazonaws.com/mod.png",
+			"svg": "http://chat-badges.s3.amazonaws.com/mod.svg"
+		},
+		"staff": {
+			"alpha": "http://chat-badges.s3.amazonaws.com/staff-alpha.png",
+			"image": "http://chat-badges.s3.amazonaws.com/staff.png",
+			"svg": "http://chat-badges.s3.amazonaws.com/staff.svg"
+		},
+		"turbo": {
+			"alpha": "http://chat-badges.s3.amazonaws.com/turbo-alpha.png",
+			"image": "http://chat-badges.s3.amazonaws.com/turbo.png",
+			"svg": "http://chat-badges.s3.amazonaws.com/turbo.svg"
+		},
+		"subscriber": null,
+		"_links": {
+			"self": "https://api.twitch.tv/kraken/chat/cbenni/badges"
+		}
+	}
+};
 
-function getBadges(parsedmessage, $http) {
+function getChannelBadges($http,channel) {
+	/*
+	 * load badges json (from cache) and return a promise
+	 */
+	var cached = _channelBadgeCache[channel];
+	if(cached) {
+		return _channelBadgeCache[channel];
+	}
+	else {
+		$http.jsonp("https://api.twitch.tv/kraken/chat/"+channel+"/badges?callback=JSON_CALLBACK",{"cache":true}).then(function(resp){
+			_channelBadgeCache[channel] = resp.data;
+		},function(resp){
+			return "ERROR";
+		});
+		return _channelBadgeCache[""];
+	}
+}
+
+function getBadges(parsedmessage) {
 	/*
 	 * get the badges from the data
 	 */
@@ -81,69 +137,18 @@ function getBadges(parsedmessage, $http) {
 	if(tags["turbo"]=="1") {
 		badges.push("turbo")
 	}
-	if($http) {
-		/*
-		 * load badges json (from cache) and return a promise
-		 */
-		return $http.jsonp("https://api.twitch.tv/kraken/chat/"+channel+"/badges?callback=JSON_CALLBACK",{"cache":true}).then(function(data){
-			var result = "";
-			for(var i=0;i<badges.length;i++) {
-				var badgetype = badges[i];
-				var badgeinfo = data.data[badgetype];
-				if(badgeinfo) {
-					badgetitle = badgetype.replace("_"," ").replace(/\b\w/g,function(m){return m.toUpperCase();});
-					result += '<img src="' + badgeinfo.image + '" title="' + badgetitle + '" class="logviewer-badge logviewer-badge-' + badgetype + '">'
-				}
-			}
-			return result;
-		},function(data){
-			return "ERROR";
-		});
+	return badges;
+	/*var channelBadges = _channelBadgeCache[channel];
+	if(channelBadges === undefined) {
+		channelBadges = _channelBadgeCache[""];
 	}
-	else
-	{
-		var data = {
-			    "global_mod": {
-			        "alpha": "http://chat-badges.s3.amazonaws.com/globalmod-alpha.png",
-			        "image": "http://chat-badges.s3.amazonaws.com/globalmod.png",
-			        "svg": "http://chat-badges.s3.amazonaws.com/globalmod.svg"
-			    },
-			    "admin": {
-			        "alpha": "http://chat-badges.s3.amazonaws.com/admin-alpha.png",
-			        "image": "http://chat-badges.s3.amazonaws.com/admin.png",
-			        "svg": "http://chat-badges.s3.amazonaws.com/admin.svg"
-			    },
-			    "broadcaster": {
-			        "alpha": "http://chat-badges.s3.amazonaws.com/broadcaster-alpha.png",
-			        "image": "http://chat-badges.s3.amazonaws.com/broadcaster.png",
-			        "svg": "http://chat-badges.s3.amazonaws.com/broadcaster.svg"
-			    },
-			    "mod": {
-			        "alpha": "http://chat-badges.s3.amazonaws.com/mod-alpha.png",
-			        "image": "http://chat-badges.s3.amazonaws.com/mod.png",
-			        "svg": "http://chat-badges.s3.amazonaws.com/mod.svg"
-			    },
-			    "staff": {
-			        "alpha": "http://chat-badges.s3.amazonaws.com/staff-alpha.png",
-			        "image": "http://chat-badges.s3.amazonaws.com/staff.png",
-			        "svg": "http://chat-badges.s3.amazonaws.com/staff.svg"
-			    },
-			    "turbo": {
-			        "alpha": "http://chat-badges.s3.amazonaws.com/turbo-alpha.png",
-			        "image": "http://chat-badges.s3.amazonaws.com/turbo.png",
-			        "svg": "http://chat-badges.s3.amazonaws.com/turbo.svg"
-			    },
-			    "subscriber": null,
-			}
-		var result = "";
-		for(var i=0;i<badges.length;i++) {
-			var badgetype = badges[i];
-			var badgeinfo = data[badgetype];
-			if(badgeinfo) {
-				badgetitle = badgetype.replace("_"," ").replace(/\b\w/g,function(m){return m.toUpperCase();});
-				result += '<img src="' + badgeinfo.image + '" title="' + badgetitle + '" class="logviewer-badge logviewer-badge-' + badgetype + '">';
-			}
+	var result = "";
+	for(var i=0;i<badges.length;i++) {
+		var badgetype = badges[i];
+		var badgeinfo = channelBadges[badgetype];
+		if(badgeinfo) {
+			badgetitle = badgetype.replace("_"," ").replace(/\b\w/g,function(m){return m.toUpperCase();});
+			result += '<img src="' + badgeinfo.image + '" title="' + badgetitle + '" class="logviewer-badge logviewer-badge-' + badgetype + '">';
 		}
-		return result;
-	}
+	}*/
 }

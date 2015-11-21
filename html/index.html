@@ -19,35 +19,43 @@
 			<div>Uptime: <span time-since="status.since"></span></div>
 		</div>
 	</div>
-	<div layout="row" class="container">
-		<div layout="column" flex="25">
-			<md-whiteframe class="md-whiteframe-5dp" flex layout-margin layout-padding>
-				<md-subheader class="md-primary">Connected channels</md-subheader>
+	<div layout="column" class="container">
+		<div layout="column" flex="100">
+			<md-whiteframe class="box md-whiteframe-5dp" flex layout-margin layout-padding>
+				<md-subheader class="md-primary" ng-click="collapseFeed=!collapseFeed">Live feed</md-subheader>
 				<md-divider></md-divider>
-				<div class="user" ng-repeat="(user, info) in status.users" flex layout="column">
-					<div class="channels md-title md-primary">{{info.nick}} - Channels</div>
-					<div ng-repeat="channel in info.channels">
-						<div>
-							<span ng-bind-html="channel.data['USERSTATE'] | userstate"></span> {{channel.name}} ({{channel.cluster}})
-						</div>
+				<div scroll-to-bottom layout-padding id="logger" ng-hide="collapseFeed">
+					<div class="logline" ng-repeat="logline in loglines">
+						<span class="md-caption loglevel loglevel-{{logline.level | loglevel | lowercase}}">{{logline.level | loglevel}}</span>
+						<span class="md-caption logtype logtype-{{logline.type}}">{{logline.type}}</span>
+						<span class="md-caption logevent logevent-{{logline.event}}" ng-show="logline.event != undefined">{{logline.event}}</span>
+						<span class="md-caption logmessage logmessage-{{logline.type}}">{{logline.message}}</span>
 					</div>
 				</div>
 			</md-whiteframe>
 		</div>
-		<div layout="column" flex>
-			<md-whiteframe class="md-whiteframe-5dp" flex layout-margin layout-padding>
-				<md-subheader class="md-primary">Live feed</md-subheader>
-				<md-divider></md-divider>
-				<div scroll-to-bottom layout-padding id="logger">
-		      <div class="logline" ng-repeat="logline in loglines">
-		        <span
-		          class="md-caption loglevel loglevel-{{logline.level | loglevel | lowercase}}">{{logline.level | loglevel}}</span>
-		          <span class="md-caption logtype logtype-{{logline.type}}">{{logline.type}}</span>
-		        <span class="md-caption logevent logevent-{{logline.event}}" ng-show="logline.event != undefined">{{logline.event}}</span>
-		        <span class="md-caption logmessage logmessage-{{logline.type}}">{{logline.message}}</span>
-		      </div>
-		    </div>
-			</md-whiteframe>
+		<div layout="column" flex="100">
+			<md-tabs md-border-bottom class="box md-whiteframe-5dp" flex layout-margin layout-padding>
+				<md-tab label="Channels">
+					<md-content layout="row" layout-margin layout-padding>
+						<div class="tabcolumn" ng-repeat="(user, info) in status.users" flex="25" layout="column">
+							<div class="channels md-title md-primary">{{info.nick}} - Channels</div>
+							<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.id == channel.id}" class="userlistentry">
+								<img md-icon ng-repeat="badge in channel.userstate.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.key}} ({{channel.cluster}})
+							</div>
+						</div>
+						<div class="tabcolumn"  flex>
+							<div>
+								{{selectedChannel}}
+							</div>
+						</div>
+					</md-content>
+				</md-tab>
+				<md-tab label="Connections">
+				</md-tab>
+			</md-tabs>
+				
+				</div>
 		</div>
 	</div>
 	<div layout="row" class="container">

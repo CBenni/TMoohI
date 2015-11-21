@@ -4,8 +4,8 @@ import asyncio
 import threading
 
 import MoohLog
-from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
 from MoohLog import statusmessage, eventmessage, MoohLogger
+from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 class TMoohIWebsocketServer:
     def __init__(self, logger, host, port, defaultfilter = []):

@@ -16,18 +16,18 @@
 ::-webkit-scrollbar-thumb {
 	background: #a5abb1;
 }
-body {
+html, body {
 	background-color: #F0F0F0;
 }
 
-md-whiteframe {
+.box {
 	background: #FFF;
-	min-height: 600px;
+	min-height: 600px !important;
 }
 
 .logo-container {
 	text-align: center;
-	margin: 100px 0 40px;
+	margin: 40px 0;
 }
 .logo {
 	font-size: 112px;
@@ -63,11 +63,11 @@ md-whiteframe {
 }
 
 .loglevel-debug {
-	background-color: #26a69a;
+	background-color: #96a9a7;
 }
 
 .loglevel-info {
-	background-color: #ffff80;
+	background-color: #039be5;
 }
 
 .loglevel-warning {
@@ -80,4 +80,38 @@ md-whiteframe {
 
 .loglevel-fatal {
 	background-color: #ff0000;
+}
+
+.tabcolumn {
+	max-height: 500px !important;
+	overflow: auto;
+}
+
+span.badges {
+	height: 100%;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.userlistentry {
+	height: 24px;
+	overflow: hidden;
+	margin: 0;
+	text-transform: none;
+	padding: 0 0 0 6px;
+	text-align: left;
+	font-weight: normal;
+}
+
+.userlistentry img {
+	vertical-align: middle;
+}
+
+/*.userlistentry.center-y {
+	position: relative;
+	top: 1px;
+}*/
+
+.selectedChannel {
+	background-color: #eeeeff;
 }

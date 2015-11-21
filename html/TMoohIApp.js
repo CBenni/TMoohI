@@ -3,11 +3,15 @@ var TMoohIApp = angular.module("TMoohIApp",['ngSanitize','ngMaterial']);
 LEVELS = { 0:"DEBUG", 10:"INFO", 20:"WARNING", 30:"ERROR", 40:"EXCEPTION", 50:"FATAL" }
 
 
-TMoohIApp.controller("StatusController", ["$scope", function($scope){
+TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $http){
 	var self = this;
+	_self = this;
+	_scope = $scope;
 	$scope.test = "hi";
 	$scope.status = {};
 	$scope.loglines = [];
+	$scope.collapseFeed = false;
+	$scope.selectedChannel = null;
 
 	self.websocket = new WebSocket('ws://localhost:3141');
 	self.websocket.onopen = function(e) {
@@ -17,17 +21,42 @@ TMoohIApp.controller("StatusController", ["$scope", function($scope){
 		var message = JSON.parse(e.data);
 		//console.log(message)
 		if(message.type == "status") {
-			$scope.$apply(function(scope){scope.status = message.data});
+			console.log("STATUS MESSAGE");
+			$scope.status = processStatusMessage($http, message.data);
 		}
 		else
 		{
-			$scope.$apply(function(scope){scope.loglines.push(message);scope.loglines=scope.loglines.slice(-500)});
+			$scope.$apply(function(scope){
+				scope.loglines.push(message);
+				scope.loglines=scope.loglines.slice(-500);
+			});
 		}
+	}
+	
+	self.selectChannel = function(channel) {
+		$scope.selectedChannel = channel;
 	}
 }]);
 
+function processStatusMessage($http, status) {
+	for(var userid in status.users) {
+		var user = status.users[userid];
+		for(var channelname in user.channels) {
+			var channel = user.channels[channelname];
+			channel.userstate = {
+				badges: getBadges(channel.data.USERSTATE)
+			};
+			channel.badges = getChannelBadges($http, channel.name.substr(1));
+			channel.id = userid+channel.key;
+		}
+	}
+	return status;
+}
+
 TMoohIApp.filter("loglevel",function() {
+	var cached = {};
 	return function(input, defaultValue) {
+		if(cached[input] !== undefined) return cached[input];
 		var exactlevel = parseInt(input);
 		var levelname = "Unknown ("+exactlevel+")";
 		for(var level in LEVELS) {
@@ -35,27 +64,43 @@ TMoohIApp.filter("loglevel",function() {
 				levelname = LEVELS[level];
 			}
 		}
+		cached[input] = levelname;
 		return levelname;
 	}
 });
 
-TMoohIApp.filter("userstate",function($sce,$http) {
+TMoohIApp.filter("badgetitle",function() {
+	return function(input, defaultValue) {
+		return input.replace("_"," ").replace(/\b\w/g,function(m){return m.toUpperCase();});
+	}
+});
+
+/*TMoohIApp.filter("userstate",function($sce,$http) {
 	var knownuserstates = {};
+	return function(input, defaultValue) {
+		if(knownuserstates[input[0]]) {
+			return knownuserstates[input[0]];
+		}
+		else {
+			knownuserstates[input[0]] = $sce.trustAsHtml(getBadges(input));
+		}
+	}
+	/*var knownuserstates = {};
 	var knownalmostuserstates = {};
 	return function(input, defaultValue) {
 		if(knownuserstates[input[0]]) {
-			return $sce.trustAsHtml(knownuserstates[input[0]]);
+			return knownuserstates[input[0]];
 		} else {
 			getBadges(input,$http).then(function(data){
-				knownuserstates[input[0]] = data;
+				knownuserstates[input[0]] = $sce.trustAsHtml(data);
 			},function(data){});
 			if(!knownalmostuserstates[input[0]]) {
-				knownalmostuserstates[input[0]] = getBadges(input)
+				knownalmostuserstates[input[0]] = $sce.trustAsHtml(getBadges(input));
 			}
-			return $sce.trustAsHtml(knownalmostuserstates[input[0]]);
+			return knownalmostuserstates[input[0]];
 		}
-	}
-});
+	}*
+});*/
 
 TMoohIApp.directive('scrollToBottom', function () {
 	return {
