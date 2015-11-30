@@ -19,7 +19,7 @@ Additionally, it seeks to prevent excessive connection initiation (and therefore
 # How to use
 Install python 3.4 (or compatible) with the required packages (list is coming soon™)
 
-Run TMoohI.py
+    python TMoohI.py
 
 Connect the same way as you would for twitch
 
