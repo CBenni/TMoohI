@@ -168,10 +168,13 @@ class chatmessage(logmessage):
         
 def reploauth(m):
     return "oauth:(%d)"%(len(m.group(1)),)
+def reploauth_token(m):
+    return "oauth_token=(%d)"%(len(m.group(1)),)
 class eventmessage(logmessage):
     def __init__(self,event,message):
         self.event = event
         self.message = re.sub("oauth:([a-z0-9]+)",reploauth,message)
+        self.message = re.sub("oauth_token=([a-z0-9]+)",reploauth_token,self.message)
         self.type = "event"
     
     def inner_str(self):
