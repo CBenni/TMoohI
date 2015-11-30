@@ -80,23 +80,18 @@ class TMoohIManager(TMoohIStatTrack):
         checkchannel = ""
         if len(info)==1:
             if info[0][1]=="_":
-                groupOauth = self.parent.config["ref-oauth-group"]
-                if oauth:
-                    groupOauth = oauth
-                if groupOauth.startswith("oauth:"):
-                    groupOauth = groupOauth[6:]
                 # group chat channel detected
-                if groupOauth:
+                if oauth:
                     # we grab the memberships
-                    membershipsResponse = self.getJSON("http://chatdepot.twitch.tv/room_memberships?oauth_token=%s"%(groupOauth,),3600)
+                    membershipsResponse = self.getJSON("http://chatdepot.twitch.tv/room_memberships?oauth_token=%s"%(oauth[6:],),3600)
                     for room in membershipsResponse["memberships"]:
                         if room["room"]["irc_channel"] == info[0][1:]:
                             return ("group", room["room"]["servers"])
                     # if we havent actually been invited to that room, we just pick the first room.
                     if membershipsResponse["memberships"]:
                         return ("group", membershipsResponse["memberships"][0]["room"]["servers"])
-                # fallback: hardcoded server IPs
-                return ("group",["199.9.253.119:443","199.9.253.119:6667","199.9.253.119:80","199.9.253.120:443","199.9.253.120:6667","199.9.253.120:80"])
+                # fallback: get server IPs from http://tmi.twitch.tv/servers?cluster=group
+                return ("group", self.getJSON("http://tmi.twitch.tv/servers?cluster=group", 3600)["servers"])
             else:
                 # either normalchat or eventchat
                 checkchannel = info[0]
@@ -106,21 +101,7 @@ class TMoohIManager(TMoohIStatTrack):
             elif "eventchat".startswith(info[1].lower()):
                 checkchannel = self.parent.config["ref-channel-event"]
             elif "groupchat".startswith(info[1].lower()):
-                groupOauth = self.parent.config["ref-oauth-group"]
-                if oauth:
-                    groupOauth = oauth
-                if groupOauth.startswith("oauth:"):
-                    groupOauth = groupOauth[6:]
-                if groupOauth:
-                    # we grab the memberships (only 30 second cooldown, this is a volatile endpoint)
-                    membershipsResponse = self.getJSON("http://chatdepot.twitch.tv/room_memberships?oauth_token=%s"%(groupOauth,),3600)
-                    for room in membershipsResponse["memberships"]:
-                        if room["room"]["irc_channel"] == channel[1:]:
-                            return ("group", room["room"]["servers"])
-                    # if we havent actually joined that room, we just pick the first room.
-                    if membershipsResponse["memberships"]:
-                        return ("group", membershipsResponse["memberships"][0]["room"]["servers"])
-                return ("group",["199.9.253.119:443","199.9.253.119:6667","199.9.253.119:80","199.9.253.120:443","199.9.253.120:6667","199.9.253.120:80"])
+                return ("group", self.getJSON("http://tmi.twitch.tv/servers?cluster=group", 3600)["servers"])
         if checkchannel:
             # this doesnt change often, so we cache it for a long time.
             chatproperties = self.getJSON("http://api.twitch.tv/api/channels/%s/chat_properties"%(checkchannel[1:],),3600)
