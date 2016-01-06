@@ -152,3 +152,25 @@ function getBadges(parsedmessage) {
 		}
 	}*/
 }
+
+function getSettings(parsedmessage) {
+	return getV3Info(parsedmessage);
+}
+
+function getHosting(parsedmessage) {
+	if(! parsedmessage) return undefined;
+	var targets = parsedmessage[STATE_TRAILING].match(/\w+/);
+	if(targets.length == 1) return targets[0];
+	return undefined;
+}
+
+function getV3Info(parsedmessage) 
+{
+	var tags = {};
+	var v3data = parsedmessage[STATE_V3].substring(1).split(";");
+	for(var i=0;i<v3data.length;i++) {
+		keyval = splitWithTail(v3data[i],"=",1)
+		tags[keyval[0]] = keyval[1]
+	}
+	return tags;
+}

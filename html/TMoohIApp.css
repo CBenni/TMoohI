@@ -37,7 +37,16 @@ html, body {
 	color: rgb(63,81,181);
 }
 .container {
-	padding: 0 300px;
+	width: 80%;
+	margin: auto;
+	min-width: 500px;
+}
+
+@media(max-width: 500px) {
+	.container {
+		width: 100%;
+		min-width: 0px;
+	}
 }
 
 .logline {

@@ -38,17 +38,27 @@
 			<md-tabs md-border-bottom class="box md-whiteframe-5dp" flex layout-margin layout-padding>
 				<md-tab label="Channels">
 					<md-content layout="row" layout-margin layout-padding>
-						<div class="tabcolumn" ng-repeat="(user, info) in status.users" flex="25" layout="column">
-							<div class="channels md-title md-primary">{{info.nick}} - Channels</div>
-							<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.id == channel.id}" class="userlistentry">
-								<img md-icon ng-repeat="badge in channel.userstate.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.key}} ({{channel.cluster}})
+						<div class="tabcolumn" flex="25" layout="column">
+							<div class="tabrow" ng-repeat="(user, info) in status.users" flex="none" layout="column">
+								<div class="channels md-title md-primary">{{info.nick}}</div>
+								<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.id == channel.id}" class="userlistentry">
+									<img md-icon ng-repeat="badge in channel.state.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.key}} ({{channel.cluster}})
+								</div>
 							</div>
 						</div>
 						<div class="tabcolumn"  flex>
-							<div>
-								{{selectedChannel}}
+							<div class="tabrow" flex="none" layout="column">
+								<div class="channels md-title md-primary">Room state</div>
+									<div>Slow: {{selectedChannel.state.settings.slow}}</div>
+									<div>Subscribers only: {{selectedChannel.state.settings["subs-only"]}}</div>
+									<div>r9k: {{selectedChannel.state.settings.r9k}}</div>
+									<div>Broadcaster language: {{selectedChannel.state.settings["broadcaster-lang"]}}</div>
+									<div>Hosting target: {{selectedChannel.state.hosting}}</div>
 							</div>
+							<br>
+							{{selectedChannel}}
 						</div>
+						
 					</md-content>
 				</md-tab>
 				<md-tab label="Connections">

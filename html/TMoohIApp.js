@@ -43,8 +43,10 @@ function processStatusMessage($http, status) {
 		var user = status.users[userid];
 		for(var channelname in user.channels) {
 			var channel = user.channels[channelname];
-			channel.userstate = {
-				badges: getBadges(channel.data.USERSTATE)
+			channel.state = {
+				badges: getBadges(channel.data.USERSTATE),
+				settings: getSettings(channel.data.ROOMSTATE),
+				hosting: getHosting(channel.data.HOSTTARGET)
 			};
 			channel.badges = getChannelBadges($http, channel.name.substr(1));
 			channel.id = userid+channel.key;
