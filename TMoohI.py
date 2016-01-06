@@ -43,7 +43,6 @@ class TMoohIServer():
             "status-json":"tmoohi-status.json",
             "ref-channel-normal":"#cbenni",
             "ref-channel-event":"#riotgames",
-            "ref-oauth-group":"",
             "cluster-seperator": "@"
         }
         
@@ -102,6 +101,7 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
         self.user = None
         self.starttime = time.time()
         self.commandsent = 0
+        linesep = None
         self.stats = {
             "since": time.time(),
             "sent": self.getCommandsSent,
@@ -117,7 +117,16 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
                     break
                 self.server.TMoohIParent.logger.debug(eventmessage("client","Got raw client message from %s (sock ID %d): %s"%(self.client_address[0],self.client_address[1],self.data)))
                 self.buffer += self.data.decode("utf-8")
-                lines = self.buffer.split("\r\n")
+                if not linesep:
+                    if "\r\n" in self.buffer:
+                        linesep = "\r\n"
+                    elif "\r" in self.buffer:
+                        linesep = "\r"
+                    elif "\n" in self.buffer:
+                        linesep = "\n"
+                    else:
+                        continue
+                lines = self.buffer.split(linesep)
                 self.buffer = lines[-1]
                 for line in lines[:-1]:
                     ex = line.split(" ")
