@@ -79,8 +79,8 @@ class TMoohIUser(TMoohIStatTrack):
         clusterinfo = self.parent.getClusterInfo(channel)
         # check the ratelimit
         now = time.time()
-        self.parent._joinedchannels = [i for i in self.parent._joinedchannels if i>now-30]
-        if len(self.parent._joinedchannels)<25:
+        self.parent._joinedchannels = [i for i in self.parent._joinedchannels if i>now-10]
+        if len(self.parent._joinedchannels)<40:
             channelname = channel.split(self.parent.parent.config["cluster-seperator"])[0]
             if channelname in self.channelsByName[clusterinfo[0]] and len(self.channelsByName[clusterinfo[0]][channelname])>0:
                 # if the channelname is already joined, we use its connection, no need to ratelimit:
@@ -120,7 +120,7 @@ class TMoohIUser(TMoohIStatTrack):
         # If we reach this, all available connections (if any) were unable to send the join or the request was ratelimited.
         # We create a new one and send the join to the joinqueue. This is ratelimited with 1 connection request per second.
         now = time.time()
-        if now-self._lastNewConnectionRequest[clusterinfo[0]]>1:
+        if now-self._lastNewConnectionRequest[clusterinfo[0]]>10:
             self.logger.debug(eventmessage("connection","Requesting new connection"))
             self.connections[clusterinfo[0]].append(self.parent.TMIConnectionFactory(self,clusterinfo))
             self._lastNewConnectionRequest[clusterinfo[0]] = now

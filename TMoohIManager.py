@@ -45,8 +45,8 @@ class TMoohIManager(TMoohIStatTrack):
         
     def TMIConnectionFactory(self,user,clusterinfo):
         now = time.time()
-        self._createdconnections = [i for i in self._createdconnections if i>now-30]
-        if len(self._createdconnections)>25:
+        self._createdconnections = [i for i in self._createdconnections if i>now-10]
+        if len(self._createdconnections)>40:
             raise RateLimitError('Creating connection to %s for user %s'%(clusterinfo[0],user.nick))
         else:
             self._createdconnections.append(now)
