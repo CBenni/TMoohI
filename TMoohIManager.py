@@ -21,28 +21,28 @@ class TMoohIManager(TMoohIStatTrack):
         self.users = {}
         self.parent = parent
         self.logger = parent.logger
-        
+
         self.stats = { "users":self.users, "queue":self.getResendQueueLength, "since":time.time(), "build": self.parent.BuildInfo.__dict__ }
-        
+
         # contains all the messages that couldnt be sent at the given point in time as a tuple (user,client,message)
         self.joinqueue = []
-        
+
         self._createdconnections = []
         self._joinedchannels = []
         self._connectionIDcounter = {}
         self._queuethread = threading.Thread(target=self.handleResendQueue)
         self._queuethread.start()
-        
+
         self._updatestatusthread = threading.Thread(target=self.updateStatus)
         self._updatestatusthread.start()
-    
+
     def quit(self):
         self.quitting = True
         for userkey,usr in self.users.items():
             usr.quit()
-        
-            
-        
+
+
+
     def TMIConnectionFactory(self,user,clusterinfo):
         now = time.time()
         self._createdconnections = [i for i in self._createdconnections if i>now-10]
@@ -57,7 +57,7 @@ class TMoohIManager(TMoohIStatTrack):
             except Exception:
                 self._connectionIDcounter[connkey] = 1
             return TMoohIConnection.TMoohIConnection(user,clusterinfo[0],random.choice(clusterinfo[1]),"%s #%d"%(connkey,self._connectionIDcounter[connkey]))
-    
+
     def connect(self, client):
         for userkey,usr in self.users.items():
             if usr.nick == client.nick and usr.oauth == client.oauth:
@@ -68,13 +68,13 @@ class TMoohIManager(TMoohIStatTrack):
         usr.welcome(client)
         print("Created user with key %s"%(usr.key,))
         return usr
-    
+
     def disconnect(self, client):
         try:
             client.user.clients.remove(client)
         except Exception:
             self.logger.exception()
-        
+
     def getClusterInfo(self,channel,oauth=None):
         info = channel.split(self.parent.config["cluster-seperator"])
         checkchannel = ""
@@ -96,11 +96,7 @@ class TMoohIManager(TMoohIStatTrack):
                 # either normalchat or eventchat
                 checkchannel = info[0]
         else:
-            if "normalchat".startswith(info[1].lower()):
-                checkchannel = self.parent.config["ref-channel-normal"]
-            elif "eventchat".startswith(info[1].lower()):
-                checkchannel = self.parent.config["ref-channel-event"]
-            elif "groupchat".startswith(info[1].lower()):
+            if "groupchat".startswith(info[1].lower()):
                 return ("group", self.getJSON("http://tmi.twitch.tv/servers?cluster=group", 3600)["servers"])
         if checkchannel:
             # this doesnt change often, so we cache it for a long time.
@@ -109,11 +105,8 @@ class TMoohIManager(TMoohIStatTrack):
                 self.logger.error(eventmessage("connect","Invalid chat properties reference channel %s"%(checkchannel,)))
                 return None
             else:
-                cluster = "normal"
-                if chatproperties["eventchat"]:
-                    cluster = "event"
-                return (cluster,chatproperties["chat_servers"])
-                
+                return (chatproperties["cluster"] ,chatproperties["chat_servers"])
+
     def getJSON(self,url,cooldown=3600):
         try:
             if time.time() < self.cachedJSONresponses[url][0]+cooldown:
@@ -127,7 +120,7 @@ class TMoohIManager(TMoohIStatTrack):
         data = json.loads(jsdata)
         self.cachedJSONresponses[url] = (time.time(), data)
         return data
-        
+
     def handleResendQueue(self):
         while not self.quitting:
             try:
@@ -157,13 +150,13 @@ class TMoohIManager(TMoohIStatTrack):
                 time.sleep(0.1)
             except Exception:
                 self.logger.exception()
-    
+
     def getResendQueueLength(self):
         return len(self.joinqueue)
-    
+
     def getUptime(self):
         return time.time()-self.started
-    
+
     def updateStatus(self):
         cnt = 0
         while not self.quitting:

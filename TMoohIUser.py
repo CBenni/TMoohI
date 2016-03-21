@@ -16,21 +16,21 @@ class TMoohIUser(TMoohIStatTrack):
         self.oauth = oauth
         self.key = "%s/%s"%(nick,id(self))
         self.clients = []
-        
+
         # maps channelkeys (#channel or #channel@cluster) to a TMoohIChannel.
         self.channels = {}
-        
+
         # maps clusters to a dictionary that maps channelnames (#channel) to a list of TMoohIChannels
-        self.channelsByName = {"normal":{},"event":{},"group":{}}
-        
-        # maps cluster (normal,event,group) to a list of TMoohIConnections
-        self.connections = {"normal":[],"event":[],"group":[]}
-        
-        # maps cluster (normal,event,group) to a time, when a connection for that cluster was last requested
-        self._lastNewConnectionRequest = {"normal":0,"event":0,"group":0}
-        
+        self.channelsByName = {"main":{},"aws":{},"group":{}}
+
+        # maps cluster (main,aws,group) to a list of TMoohIConnections
+        self.connections = {"main":[],"aws":[],"group":[]}
+
+        # maps cluster (main,aws,group) to a time, when a connection for that cluster was last requested
+        self._lastNewConnectionRequest = {"main":0,"aws":0,"group":0}
+
         self.globaluserstate = ""
-        
+
         self.stats = {
             "nick": self.nick,
             "channels": self.channels,
@@ -39,10 +39,10 @@ class TMoohIUser(TMoohIStatTrack):
             "TMIMessages": 0,
             "ClientMessages": 0,
         }
-        
+
         self.messagequeue = []
-    
-    
+
+
     def handleMessageQueue(self):
         while self.messagequeue:
             # dequeue messages and handle them until we meet one that we cannot handle yet
@@ -63,12 +63,12 @@ class TMoohIUser(TMoohIStatTrack):
                 return False
             time.sleep(0.01)
         return True
-    
+
     def quit(self):
         for cluster, connections in self.connections.items():
             for connection in connections:
                 connection.quit()
-        
+
     def join(self,channel, appendtoqueue):
         self.logger.debug(eventmessage("channel","Trying to join channel %s"%(channel,)))
         if channel in self.channels:
@@ -130,12 +130,12 @@ class TMoohIUser(TMoohIStatTrack):
         else:
             self.parent.joinqueue.insert(0,{"user":self,"message":"JOIN %s"%(channel,)})
         return False
-    
+
     def part(self,channel,announce=True):
         channelinfo = self.channels[channel]
         # remove from channelsByName
         self.channelsByName[channelinfo.cluster][channelinfo.channelname].remove(channelinfo)
-        # if there are no channels for this channelname left, we leave the channel 
+        # if there are no channels for this channelname left, we leave the channel
         if len(self.channelsByName[channelinfo.cluster][channelinfo.channelname])==0:
             try:
                 channelinfo.part()
@@ -146,11 +146,11 @@ class TMoohIUser(TMoohIStatTrack):
         if announce:
             # let the world know we left the channel
             self.broadcast(":{nick}!{nick}@{nick}.tmi.twitch.tv PART {chan}".format(nick=self.nick,chan=channel))
-    
+
     def privmsg(self,message, appendtoqueue):
         if not message[STATE_TRAILING]:
             raise TypeError("PRIVMSG: Trailing data expected")
-        
+
         channels = [y for b in message[STATE_PARAM] for y in b.split(",") if y]
         allok = True
         for channel in channels:
@@ -179,24 +179,24 @@ class TMoohIUser(TMoohIStatTrack):
                     self.messagequeue.insert(0,{"user":self,"message":message[0]})
                 allok = False
         return allok
-    
+
     def handle_client_privmsg(self,client,message, appendtoqueue):
         self.stats["ClientMessages"] += 1
         try:
             return self.privmsg(message, appendtoqueue)
         except InvalidChannelError:
-            client.request.sendall((":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PRIVMSG command. Use PRIVMSG #channel :message or PRIVMSG #channel%scluster :message where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
-    
+            client.request.sendall((":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PRIVMSG command. Use PRIVMSG #channel :message or PRIVMSG #channel%scluster :message where cluster is either 'main', 'aws' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
+
     def handle_client_cap(self,client,message, appendtoqueue):
         client.request.sendall(b":tmi.twitch.tv 410 tmi.twitch.tv :Invalid CAP command. TMoohI always runs twitch.tv/commands and twitch.tv/tags\r\n")
-    
+
     def handle_client_ping(self,client,message, appendtoqueue):
         if message[STATE_PARAM]:
             client.request.sendall((":tmi.twitch.tv PONG tmi.twitch.tv :%s\r\n"%(message[STATE_PARAM][0],)).encode("utf-8"))
         else:
             client.request.sendall((":tmi.twitch.tv PONG tmi.twitch.tv :%s\r\n"%(int(time.time()),)).encode("utf-8"))
         return True
-    
+
     def handle_client_join(self,client,message, appendtoqueue):
         if message[STATE_PARAM]:
             allok = True
@@ -207,12 +207,12 @@ class TMoohIUser(TMoohIStatTrack):
                     allok = ok and allok
             except TypeError:
                 self.logger.exception()
-                client.request.sendall((":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
+                client.request.sendall((":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'main', 'aws' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
             return allok
         else:
-            client.request.sendall((":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
+            client.request.sendall((":tmi.twitch.tv 420 tmi.twitch.tv :Invalid JOIN command. Use JOIN #channel or JOIN #channel%scluster where cluster is either 'main', 'aws' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
         return True
-    
+
     def handle_client_part(self,client,message, appendtoqueue):
         ok = True
         if message[STATE_PARAM]:
@@ -225,21 +225,21 @@ class TMoohIUser(TMoohIStatTrack):
         else:
             ok = False
         if not ok:
-            client.request.sendall((":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PART command. Use PART #channel or PART #channel%scluster where cluster is either 'normal', 'event' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
+            client.request.sendall((":tmi.twitch.tv 421 tmi.twitch.tv :Invalid PART command. Use PART #channel or PART #channel%scluster where cluster is either 'main', 'aws' or 'group'\r\n"%(self.parent.parent.config["cluster-seperator"],)).encode("utf-8"))
         return True
-        
-    
+
+
     def handle_client_mode(self,client,message, appendtoqueue):
         client.request.sendall((":tmi.twitch.tv 421 %s %s :Unknown command\r\n"%(self.nick,message[STATE_COMMAND])).encode("utf-8"))
         return True
-        
-    
+
+
     def handle_client_who(self,client,message, appendtoqueue):
         client.request.sendall((":tmi.twitch.tv 421 %s %s :Unknown command\r\n"%(self.nick,message[STATE_COMMAND])).encode("utf-8"))
         return True
-    
+
     def handle_client_conndisc(self,client,message, appendtoqueue):
-        cluster = "normal"
+        cluster = "main"
         if message[STATE_PARAM]:
             cluster = message[STATE_PARAM]
         for conn in self.connections[cluster]:
@@ -248,9 +248,9 @@ class TMoohIUser(TMoohIStatTrack):
                 break
         client.request.sendall((":tmi.twitch.tv 421 %s :Cutting a bot\r\n"%(self.nick,)).encode("utf-8"))
         return True
-        
+
     def handle_client_connkill(self,client,message, appendtoqueue):
-        cluster = "normal"
+        cluster = "main"
         if message[STATE_PARAM]:
             cluster = message[STATE_PARAM]
         for conn in self.connections[cluster]:
@@ -259,9 +259,9 @@ class TMoohIUser(TMoohIStatTrack):
                 break
         client.request.sendall((":tmi.twitch.tv 421 %s :Killing a bot\r\n"%(self.nick,)).encode("utf-8"))
         return True
-    
+
     def handle_client_conndie(self,client,message, appendtoqueue):
-        cluster = "normal"
+        cluster = "main"
         if message[STATE_PARAM]:
             cluster = message[STATE_PARAM]
         for conn in self.connections[cluster]:
@@ -270,9 +270,9 @@ class TMoohIUser(TMoohIStatTrack):
                 break
         client.request.sendall((":tmi.twitch.tv 421 %s :A bot passed away...\r\n"%(self.nick,)).encode("utf-8"))
         return True
-        
-    
-    #this takes a client message and handles it. It manages connection counts, channel limits, ratelimits. If it cant send a message at the current point in time, 
+
+
+    #this takes a client message and handles it. It manages connection counts, channel limits, ratelimits. If it cant send a message at the current point in time,
     #because of ratelimits or the like, it pushes the message into the TMoohIManager's messagequeue/joinqueue
     # returns True if no message was added to the resentqueue, False if there was.
     def handleClientMessage(self,client,data, appendtoqueue):
@@ -280,7 +280,7 @@ class TMoohIUser(TMoohIStatTrack):
         # parse the message
         message = parseIRCMessage(data)
         cmd = message[STATE_COMMAND].lower()
-        
+
         handler = None
         try:
             handler = getattr(self,"handle_client_%s"%(cmd,))
@@ -292,9 +292,9 @@ class TMoohIUser(TMoohIStatTrack):
                 return handler(client,message, appendtoqueue)
             except Exception:
                 self.logger.exception()
-            
+
         return True
-    
+
     # Swallows messages from the user himself and dispatches them
     def handleTMIMessage(self,connection,message):
         ownhostmask = ":{nick}!{nick}@{nick}.tmi.twitch.tv".format(nick=self.nick)
@@ -323,7 +323,7 @@ class TMoohIUser(TMoohIStatTrack):
                 return
         # no channelbound message. Just broadcast then.
         self.broadcast(message[0])
-    
+
     # Sends the message to all connected clients of this user
     def broadcast(self,message):
         try:
@@ -332,8 +332,8 @@ class TMoohIUser(TMoohIStatTrack):
                 client.request.sendall((message+"\r\n").encode("utf-8"))
         except Exception:
             self.logger.exception()
-    
-    
+
+
     def welcome(self,client):
         client.request.sendall(":tmi.twitch.tv 001 {username} :Welcome, GLHF!\r\n:tmi.twitch.tv 002 {username} :Your host is tmi.twitch.tv\r\n:tmi.twitch.tv 003 {username} :This server is pretty old\r\n:tmi.twitch.tv 004 {username} :{buildinfo} loaded and running smoothly.\r\n:tmi.twitch.tv 375 {username} :-\r\n:tmi.twitch.tv 372 {username} :You are in a maze of dank memes, all alike.\r\n:tmi.twitch.tv 376 {username} :>\r\n".format(username=client.nick,buildinfo=self.parent.parent.BuildInfo).encode("utf-8"))
         client.request.sendall(":tmi.twitch.tv CAP * ACK :twitch.tv/tags\r\n:tmi.twitch.tv CAP * ACK :twitch.tv/commands\r\n".encode("utf-8"))
@@ -361,6 +361,6 @@ def replaceChannel(ex, source, target):
         message += " " + " ".join(copy[STATE_PARAM])
     if copy[STATE_TRAILING]:
         message += " " + copy[STATE_TRAILING]
-    
+
     copy[0] = message
     return copy
