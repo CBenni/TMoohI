@@ -110,7 +110,10 @@ class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
                 self.factory.logger.exception()
 
     def inner_write(self,message):
-        self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
+        try:
+            self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
+        except Exception:
+            pass
 
     def onClose(self, wasClean, code, reason):
         try:
