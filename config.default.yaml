@@ -7,7 +7,5 @@ logfile:               'tmoohi_%Y_%m_%d.log'
 logfile-loglevel:      10
 console-loglevel:      10
 status-json:           'tmoohi-status.json'
-ref-channel-normal:    '#cbenni'
-ref-channel-event:     '#riotgames'
 cluster-seperator:     '@'
 channels-per-connection: 10
