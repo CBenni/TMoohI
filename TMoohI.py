@@ -43,7 +43,8 @@ class TMoohIServer():
             "status-json":"tmoohi-status.json",
             "ref-channel-normal":"#cbenni",
             "ref-channel-event":"#riotgames",
-            "cluster-seperator": "@"
+            "cluster-seperator": "@",
+			"channels-per-connection": 10
         }
         
         for k in config.__dict__:

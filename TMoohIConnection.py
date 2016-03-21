@@ -150,7 +150,7 @@ class TMoohIConnection(TMoohIStatTrack):
         if channelinfo.channelname in self.channelnames:
             self.channels.append(channelinfo)
         else:
-            if len(self.channelnames)>=10:
+            if len(self.channelnames)>=self.manager.parent.config["channels-per-connection"]:
                 raise TooManyChannelsError(len(self.channels))
             else:
                 self.sendraw("JOIN %s"%(channelinfo.channelname,))

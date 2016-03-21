@@ -9,3 +9,4 @@ status-json:           'tmoohi-status.json'
 ref-channel-normal:    '#cbenni'
 ref-channel-event:     '#riotgames'
 cluster-seperator:     '@'
+channels-per-connection: 10
