@@ -96,7 +96,7 @@ class TMoohIManager(TMoohIStatTrack):
                 # either normalchat or eventchat
                 checkchannel = info[0]
         else:
-            elif "groupchat".startswith(info[1].lower()):
+            if "groupchat".startswith(info[1].lower()):
                 return ("group", self.getJSON("http://tmi.twitch.tv/servers?cluster=group", 3600)["servers"])
         if checkchannel:
             # this doesnt change often, so we cache it for a long time.
