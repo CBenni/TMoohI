@@ -113,11 +113,11 @@ class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
         self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
 
     def onClose(self, wasClean, code, reason):
-		try:
-			self.factory.logger.writers.remove(self)
-		except ValueError:
-			pass
+        try:
+            self.factory.logger.writers.remove(self)
+        except ValueError:
+            pass
         if wasClean:
-			self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed: {}".format(reason)))
-		else:
-			self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed unexpectedly: {}".format(reason)))
+            self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed: {}".format(reason)))
+        else:
+            self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed unexpectedly: {}".format(reason)))
