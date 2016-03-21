@@ -1,3 +1,4 @@
+# THIS FILE IS JUST FOR INFORMATION. PUT SETTINGS INTO config.yaml INSTEAD!
 host:                  'localhost'
 port:                  6667
 websockethost:         'localhost'
