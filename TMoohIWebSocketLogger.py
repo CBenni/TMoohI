@@ -24,7 +24,7 @@ class TMoohIWebsocketServer:
         self.factory.logger = self.logger
         self.factory.defaultfilter = defaultfilter
         self.factory.neweststatus = None
-        self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up!"))
+        self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up on %s:%s!"%(self.host, self.port)))
         
         self.serverthread = threading.Thread(target = self.runserver)
         self.serverthread.start()
