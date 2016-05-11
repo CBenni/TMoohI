@@ -13,7 +13,7 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	$scope.collapseFeed = false;
 	$scope.selectedChannel = null;
 
-	self.websocket = new WebSocket('ws://localhost:3141');
+	self.websocket = new WebSocket('ws://'+window.location.hostname+':3141');
 	self.websocket.onopen = function(e) {
 		self.websocket.send('SETFILTER [{"level__ge":0},{"type":"stats"}]')
 	}
