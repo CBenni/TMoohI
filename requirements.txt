@@ -1,0 +1,5 @@
+autobahn==0.14.0
+PyYAML==3.11
+six==1.10.0
+txaio==2.5.1
+wheel==0.26.0
