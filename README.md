@@ -17,9 +17,17 @@ Additionally, it seeks to prevent excessive connection initiation (and therefore
 * IRC Client compatible
 
 # How to use
-Install python 3.4 (or compatible) with the required packages (list is coming soon™)
+Install python 3.4 (or compatible) with the required packages:
 
-    python TMoohI.py
+```shell
+pip install -r requirements.txt
+```
+
+Then run with:
+
+```shell
+python TMoohI.py
+```
 
 Connect the same way as you would for twitch
 
