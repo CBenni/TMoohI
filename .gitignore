@@ -3,3 +3,6 @@ venv/
 *.log
 *.json
 .gitconfig
+MANIFEST
+.project
+.pydevproject

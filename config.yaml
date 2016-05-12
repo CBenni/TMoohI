@@ -1,0 +1,11 @@
+host:                  'localhost'
+port:                  1337
+websockethost:         'localhost'
+websocketport:         3141
+logfile:               'tmoohi_%Y_%m_%d.log'
+logfile-loglevel:      10
+console-loglevel:      10
+status-json:           'tmoohi-status.json'
+ref-oauth-group:       
+cluster-seperator:     '.'
+channels-per-connection: 10

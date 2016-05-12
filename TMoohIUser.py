@@ -306,6 +306,10 @@ class TMoohIUser(TMoohIStatTrack):
             return
         if message[STATE_COMMAND] == "GLOBALUSERSTATE":
             self.globaluserstate = message[0]
+        if message[STATE_COMMAND] == "WHISPER": 
+            # eat all whispers except from the first connection
+            if connection != self.connections[connection.clustername][0]:
+                return
         params = message[STATE_PARAM]
         if message[STATE_COMMAND] == "PRIVMSG":
             self.stats["TMIMessages"] += 1
