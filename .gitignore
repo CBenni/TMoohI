@@ -6,3 +6,4 @@ venv/
 MANIFEST
 .project
 .pydevproject
+config.yaml
