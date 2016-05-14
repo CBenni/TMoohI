@@ -44,9 +44,9 @@ function processStatusMessage($http, status) {
 		for(var channelname in user.channels) {
 			var channel = user.channels[channelname];
 			channel.state = {
-				badges: getBadges(channel.data.USERSTATE),
-				settings: getSettings(channel.data.ROOMSTATE),
-				hosting: getHosting(channel.data.HOSTTARGET)
+				badges: channel.data.USERSTATE && getBadges(parseIRCMessage(channel.data.USERSTATE)),
+				settings: channel.data.ROOMSTATE && getSettings(parseIRCMessage(channel.data.ROOMSTATE)),
+				hosting: channel.data.HOSTTARGET && getHosting(parseIRCMessage(channel.data.HOSTTARGET))
 			};
 			channel.badges = getChannelBadges($http, channel.name.substr(1));
 			channel.id = userid+channel.key;

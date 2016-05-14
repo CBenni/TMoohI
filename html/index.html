@@ -42,7 +42,7 @@
 							<div class="tabrow" ng-repeat="(user, info) in status.users" flex="none" layout="column">
 								<div class="channels md-title md-primary">{{info.nick}}</div>
 								<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.id == channel.id}" class="userlistentry">
-									<img md-icon ng-repeat="badge in channel.state.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.key}} ({{channel.cluster}})
+									<img md-icon ng-repeat="badge in channel.state.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.name}}
 								</div>
 							</div>
 						</div>
