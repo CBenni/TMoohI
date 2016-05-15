@@ -32,9 +32,11 @@ class TMoohIManager(TMoohIStatTrack):
 		self._conn_join_times = []
 		self._connectionIDcounter = {}
 		self._queuethread = threading.Thread(target=self.handleJoinQueue)
+		self._queuethread.daemon = True
 		self._queuethread.start()
 
 		self._updatestatusthread = threading.Thread(target=self.updateStatus)
+		self._updatestatusthread.daemon = True
 		self._updatestatusthread.start()
 
 	def quit(self):
@@ -127,17 +129,15 @@ class TMoohIManager(TMoohIStatTrack):
 					pass
 				
 				# check join queue
-				nextjoin = 0
-				while self.joinqueue:
+				iterator = 0
+				while iterator < len(self.joinqueue):
 					if self.quitting:
 						return
 					if len(self._conn_join_times) >= 40:
 						break
 					
 					# dequeue messages and handle them until we meet one that we cannot handle yet
-					thisChannelPos = nextjoin % len(self.joinqueue)
-					nextjoin += 1
-					channeljoininfo = self.joinqueue[thisChannelPos]
+					channeljoininfo = self.joinqueue[iterator]
 					user = channeljoininfo["user"]
 					channelinfo = channeljoininfo["channelinfo"]
 					self.logger.debug(eventmessage("queue","Dequeing channel %s for %s from join queue"%(channelinfo.name,user.key)))
@@ -146,13 +146,15 @@ class TMoohIManager(TMoohIStatTrack):
 						try:
 							conn.join(channelinfo)
 							self._conn_join_times.append(time.time())
-							self.joinqueue.pop(thisChannelPos)
+							self.joinqueue.pop(iterator)
+							iterator -= 1
 							self.logger.debug(eventmessage("channel","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
 							break
 						except (TooManyChannelsError, NotConnectedError):
 							pass
 					else:
 						self.logger.debug(eventmessage("queue","Channel %s could not be joined, requeueing"%(channelinfo.name,)))
+					iterator += 1
 					time.sleep(0.1)
 				time.sleep(0.1)
 			except Exception:

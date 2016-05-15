@@ -12,10 +12,11 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	$scope.loglines = [];
 	$scope.collapseFeed = false;
 	$scope.selectedChannel = null;
+	$scope.selectedConnection = null;
 
 	self.websocket = new WebSocket('ws://'+window.location.hostname+':3141');
 	self.websocket.onopen = function(e) {
-		self.websocket.send('SETFILTER [{"level__ge":0},{"type":"stats"}]')
+		self.websocket.send('SETFILTER [{"level__ge":10},{"type":"status"}]')
 	}
 	self.websocket.onmessage = function(e) {
 		var message = JSON.parse(e.data);
@@ -35,6 +36,11 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	
 	self.selectChannel = function(channel) {
 		$scope.selectedChannel = channel;
+	}
+	
+	self.selectConnection = function(userInfo, conn) {
+		$scope.selectedConnection = conn;
+		conn.user = userInfo;
 	}
 }]);
 

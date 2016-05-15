@@ -39,7 +39,7 @@ class TMoohIConnection(TMoohIStatTrack):
 			"server": "%s:%s"%(self.ip, self.port),
 			"id": self.connid,
 			"connected": self.getConnected,
-			"channels": self.channels
+			"channels": self.getChannels
 		}
 		
 		# internals:
@@ -57,6 +57,9 @@ class TMoohIConnection(TMoohIStatTrack):
 	
 	def getConnected(self):
 		return self.connected
+	
+	def getChannels(self):
+		return [c.name for c in self.channels]
 	
 	def connect(self):
 		self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

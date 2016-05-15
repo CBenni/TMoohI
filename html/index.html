@@ -7,6 +7,7 @@
 	<title>TMoohI Status</title>
 
 	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/0.11.2/angular-material.min.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<link href='https://fonts.googleapis.com/css?family=Roboto:400,100,300,500,700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="TMoohIApp.css">
 </head>
@@ -41,27 +42,74 @@
 						<div class="tabcolumn" flex="25" layout="column">
 							<div class="tabrow" ng-repeat="(user, info) in status.users" flex="none" layout="column">
 								<div class="channels md-title md-primary">{{info.nick}}</div>
-								<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.id == channel.id}" class="userlistentry">
+								<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.name == channel.name}" class="userlistentry">
 									<img md-icon ng-repeat="badge in channel.state.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.name}}
 								</div>
 							</div>
 						</div>
-						<div class="tabcolumn"  flex>
+						<div class="tabcolumn" flex ng-show="selectedChannel">
 							<div class="tabrow" flex="none" layout="column">
 								<div class="channels md-title md-primary">Room state</div>
-									<div>Slow: {{selectedChannel.state.settings.slow}}</div>
-									<div>Subscribers only: {{selectedChannel.state.settings["subs-only"]}}</div>
-									<div>r9k: {{selectedChannel.state.settings.r9k}}</div>
-									<div>Broadcaster language: {{selectedChannel.state.settings["broadcaster-lang"]}}</div>
-									<div>Hosting target: {{selectedChannel.state.hosting}}</div>
+								<table>
+									<tr>
+										<td>Slow</td>
+										<td>{{selectedChannel.state.settings.slow}}</td>
+									</tr>
+									<tr>
+										<td>Subscribers only</td>
+										<td>
+											<md-checkbox disabled="true" ng-model="selectedChannel.state.settings['subs-only']" ng-true-value="'1'" ng-false-value="'0'"></md-checkbox>
+										</td>
+									</tr>
+									<tr>
+										<td>R9K</td>
+										<td><md-checkbox disabled="true" ng-model="selectedChannel.state.settings.r9k" ng-true-value="'1'" ng-false-value="'0'"></md-checkbox></td>
+									</tr>
+									<tr>
+										<td>Broadcaster language</td>
+										<td>{{selectedChannel.state.settings["broadcaster-lang"]}}</td>
+									</tr>
+									<tr>
+										<td>Hosting target</td>
+										<td>{{selectedChannel.state.hosting}}</td>
+									</tr>
+								</table>
 							</div>
 							<br>
-							{{selectedChannel}}
 						</div>
 						
 					</md-content>
 				</md-tab>
 				<md-tab label="Connections">
+					<md-content layout="row" layout-margin layout-padding>
+						<div class="tabcolumn" flex="25" layout="column">
+							<div class="tabrow" ng-repeat="(user, info) in status.users" flex="none" layout="column">
+								<div class="channels md-title md-primary">{{info.nick}}</div>
+								<div ng-repeat="connection in info.connections" md-button md-ink-ripple ng-click="statusCtrl.selectConnection(info, connection)" ng-class="{selectedChannel: selectedConnection.id == connection.id}" class="userlistentry">
+									<md-icon>{{connection.connected?"check_circle":"error"}}</md-icon> {{connection.id}}
+								</div>
+							</div>
+						</div>
+						<div class="tabcolumn" flex ng-show="selectedConnection">
+							<div class="tabrow" flex="none" layout="column">
+								<div class="channels md-title md-primary">Connection state</div>
+									<table>
+										<tr>
+											<td>Connected</td>
+											<td>
+												<md-checkbox disabled="true" ng-model="selectedConnection.connected"></md-checkbox>
+											</td>
+										</tr>
+									</table>
+								<div class="channels md-title md-primary">Joined channels</div>
+									<div ng-repeat="channelName in selectedConnection.channels">
+										<img md-icon ng-repeat="badge in selectedConnection.user.channels[channelName].state.badges" ng-src="{{selectedConnection.user.channels[channelName].badges[badge].image}}" class="center-y"> {{channelName}}
+									</div>
+							</div>
+							<br>
+						</div>
+						
+					</md-content>
 				</md-tab>
 			</md-tabs>
 				

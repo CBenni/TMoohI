@@ -29,7 +29,7 @@ class TMoohIChannel(TMoohIStatTrack):
 				v3tags = getIRCv3Info(ex)
 				currentv3tags.update(v3tags)
 				newv3info = "@"+(";".join(["%s=%s"%(key,val) for key,val in currentv3tags.items()]))
-				currentex[0] = newv3info + " " + currentex[0].split(" ",1)[1]
+				self.data["ROOMSTATE"] = newv3info + " " + self.data["ROOMSTATE"].split(" ",1)[1]
 				return
 		self.data[ex[STATE_COMMAND]] = ex[0]
 		
