@@ -29,10 +29,4 @@ Then run with:
 python TMoohI.py
 ```
 
-Connect the same way as you would for twitch
-
-Join channels:
-* JOIN #channel - automatically detect chat server
-* JOIN #channel@normal - join on normal chat
-* JOIN #channel@event - join on event chat
-* JOIN #channel@group - join on group chat
+Connect the same way as you would for twitch. Ignore rate limits. Be happy.
