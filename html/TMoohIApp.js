@@ -35,6 +35,7 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	}
 	
 	self.selectChannel = function(channel) {
+		//todo: change from selectedChannel to selectedChannelName
 		$scope.selectedChannel = channel;
 	}
 	
