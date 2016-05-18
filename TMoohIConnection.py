@@ -121,6 +121,7 @@ class TMoohIConnection(TMoohIStatTrack):
 			# when the connection dies, rejoin the channels on different (or new) connections
 			for channel in self.channels:
 				self.logger.error(eventmessage("queue","Readding channel %s to the joinqueue!"%(channel.name,)))
+				channel.conn = None
 				self.manager.joinqueue.append({"user":self.parent,"channelinfo":channel})
 	
 	def sendraw(self,x):
@@ -170,6 +171,7 @@ class TMoohIConnection(TMoohIStatTrack):
 			self.logger.error(eventmessage("connect","Bot %s got silently disconnected. Enabling dead mode."%(self.connid,)))
 			self.connected = False
 			self.dead = True
+			self.killing = True
 			self._socket.close()
 		elif dt > 15:
 			self.logger.debug(eventmessage("connect","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))

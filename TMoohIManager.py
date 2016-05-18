@@ -2,6 +2,7 @@ import time
 import json
 import random
 import threading
+from collections import deque
 import urllib.request as urllib2
 
 import MoohLog
@@ -25,7 +26,7 @@ class TMoohIManager(TMoohIStatTrack):
 		self.stats = { "users":self.users, "queue":self.getResendQueueLength, "since":time.time(), "build": self.parent.BuildInfo.__dict__ }
 
 		# contains all the messages that couldnt be sent at the given point in time as a tuple (user,client,message)
-		self.joinqueue = []
+		self.joinqueue = deque()
 
 		self._createdconnections = []
 		# times at which we created a connection or joined a channel
@@ -94,7 +95,7 @@ class TMoohIManager(TMoohIStatTrack):
 		# try joining this channel
 		for conn in user.connections:
 			try:
-				if len(self._conn_join_times) < 40:
+				if len(self._conn_join_times) < 45:
 					conn.join(channelinfo)
 					self._conn_join_times.append(time.time())
 					self.logger.debug(eventmessage("channel","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
@@ -133,29 +134,30 @@ class TMoohIManager(TMoohIStatTrack):
 				while iterator < len(self.joinqueue):
 					if self.quitting:
 						return
-					if len(self._conn_join_times) >= 40:
+					if len(self._conn_join_times) >= 45:
 						break
 					
-					# dequeue messages and handle them until we meet one that we cannot handle yet
-					channeljoininfo = self.joinqueue[iterator]
+					# dequeue a channel and try to join it
+					channeljoininfo = self.joinqueue.pop()
 					user = channeljoininfo["user"]
 					channelinfo = channeljoininfo["channelinfo"]
 					self.logger.debug(eventmessage("queue","Dequeing channel %s for %s from join queue"%(channelinfo.name,user.key)))
 					# try joining this channel
-					for conn in user.connections:
+					seed = random.randint(0,len(user.connections))
+					for index in range(len(user.connections)):
 						try:
+							conn = user.connections[(index+seed)%len(user.connections)]
 							conn.join(channelinfo)
 							self._conn_join_times.append(time.time())
-							self.joinqueue.pop(iterator)
-							iterator -= 1
 							self.logger.debug(eventmessage("channel","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
 							break
 						except (TooManyChannelsError, NotConnectedError):
 							pass
 					else:
+						# put it back into the deque
+						self.joinqueue.append(channeljoininfo)
+						iterator += 1
 						self.logger.debug(eventmessage("queue","Channel %s could not be joined, requeueing"%(channelinfo.name,)))
-					iterator += 1
-					time.sleep(0.1)
 				time.sleep(0.1)
 			except Exception:
 				self.logger.exception()

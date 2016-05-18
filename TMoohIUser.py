@@ -270,7 +270,6 @@ class TMoohIUser(TMoohIStatTrack):
 	# Sends the message to all connected clients of this user
 	def broadcast(self, channel, message):
 		try:
-			self.logger.debug(eventmessage("raw","Broadcasting message %s"%(message,)))
 			for client in self.clients:
 				if channel == None or channel.name in client.channels:
 					client.request.sendall((message+"\r\n").encode("utf-8"))

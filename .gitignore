@@ -7,3 +7,4 @@ MANIFEST
 .project
 .pydevproject
 config.yaml
+test/
