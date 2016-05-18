@@ -89,6 +89,7 @@ class TMoohIServer():
 	def __del__(self):
 		self.logger.info(eventmessage("general","Stopped TMoohI server."))
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+	allow_reuse_address = True
 	pass
 class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
 	def handle(self):
