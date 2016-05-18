@@ -106,6 +106,12 @@ class TMoohIConnection(TMoohIStatTrack):
 							self.logger.info(eventmessage("channel","Joined channel "+ex[STATE_PARAM][0]))
 						except Exception:
 							self.logger.exception()
+					elif ex[STATE_COMMAND]=="PART":
+						try:
+							self.parent.handleTMIMessage(self, ex)
+							self.logger.info(eventmessage("channel","Left channel "+ex[STATE_PARAM][0]))
+						except Exception:
+							self.logger.exception()
 					else:
 						self.parent.handleTMIMessage(self, ex)
 		except ConnectionAbortedError:
