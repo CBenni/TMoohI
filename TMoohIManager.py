@@ -80,11 +80,11 @@ class TMoohIManager(TMoohIStatTrack):
 	def getJSON(self,url,cooldown=3600):
 		try:
 			if time.time() < self.cachedJSONresponses[url][0]+cooldown:
-				self.logger.debug(eventmessage("json","JSON response from cache: %s"%(url,)))
+				self.logger.debug(eventmessage("manager","JSON response from cache: %s"%(url,)))
 				return self.cachedJSONresponses[url][1]
 		except KeyError:
 			pass
-		self.logger.debug(eventmessage("json","Downloading JSON from %s"%(url,)))
+		self.logger.debug(eventmessage("manager","Downloading JSON from %s"%(url,)))
 		res = urllib2.urlopen(url)
 		jsdata = res.read().decode("utf-8")
 		data = json.loads(jsdata)
@@ -98,12 +98,12 @@ class TMoohIManager(TMoohIStatTrack):
 				if len(self._conn_join_times) < 45:
 					conn.join(channelinfo)
 					self._conn_join_times.append(time.time())
-					self.logger.debug(eventmessage("channel","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
+					self.logger.debug(eventmessage("manager","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
 					break
 			except (TooManyChannelsError, NotConnectedError):
 				pass
 		else:
-			self.logger.debug(eventmessage("queue","Channel %s could not be joined, enqueueing"%(channelinfo.name,)))
+			self.logger.debug(eventmessage("manager","Channel %s could not be joined, enqueueing"%(channelinfo.name,)))
 			self.joinqueue.append({"user":user,"channelinfo":channelinfo})
 			
 
@@ -120,7 +120,7 @@ class TMoohIManager(TMoohIStatTrack):
 							return
 						if len(self._conn_join_times) < 40:
 							if user.getTotalChannels() >= 0.75 * user.getCapacity():
-								self.logger.debug(eventmessage("connection","Requesting new connection for %s because of exceeded capacity"%(user.key,)))
+								self.logger.debug(eventmessage("manager","Requesting new connection for %s because of exceeded capacity"%(user.key,)))
 								# request new connection
 								user.connections.append(self.TMIConnectionFactory(user))
 						# handle message queues
@@ -141,7 +141,7 @@ class TMoohIManager(TMoohIStatTrack):
 					channeljoininfo = self.joinqueue.pop()
 					user = channeljoininfo["user"]
 					channelinfo = channeljoininfo["channelinfo"]
-					self.logger.debug(eventmessage("queue","Dequeing channel %s for %s from join queue"%(channelinfo.name,user.key)))
+					self.logger.debug(eventmessage("manager","Dequeing channel %s for %s from join queue"%(channelinfo.name,user.key)))
 					# try joining this channel
 					seed = random.randint(0,len(user.connections))
 					for index in range(len(user.connections)):
@@ -149,7 +149,7 @@ class TMoohIManager(TMoohIStatTrack):
 							conn = user.connections[(index+seed)%len(user.connections)]
 							conn.join(channelinfo)
 							self._conn_join_times.append(time.time())
-							self.logger.debug(eventmessage("channel","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
+							self.logger.debug(eventmessage("manager","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
 							break
 						except (TooManyChannelsError, NotConnectedError):
 							pass
@@ -157,7 +157,7 @@ class TMoohIManager(TMoohIStatTrack):
 						# put it back into the deque
 						self.joinqueue.append(channeljoininfo)
 						iterator += 1
-						self.logger.debug(eventmessage("queue","Channel %s could not be joined, requeueing"%(channelinfo.name,)))
+						self.logger.debug(eventmessage("manager","Channel %s could not be joined, requeueing"%(channelinfo.name,)))
 				time.sleep(0.1)
 			except Exception:
 				self.logger.exception()

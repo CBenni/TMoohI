@@ -51,13 +51,13 @@ class TMoohIUser(TMoohIStatTrack):
 			except KeyError:
 				client = None
 			data = message["message"]
-			self.logger.debug(eventmessage("queue","Dequeing message %s for %s"%(data,user.key)))
+			self.logger.debug(eventmessage("user","Dequeing message %s for %s"%(data,user.key)))
 			successfulsend = self.handleClientMessage(client,data, False)
-			self.logger.debug(eventmessage("queue","handleClientMessage returned with value %s"%(successfulsend,)))
+			self.logger.debug(eventmessage("user","handleClientMessage returned with value %s"%(successfulsend,)))
 			if successfulsend:
-				self.logger.debug(eventmessage("queue","handleClientMessage was successful! Queue length: %d"%(len(self.messagequeue),)))
+				self.logger.debug(eventmessage("user","handleClientMessage was successful! Queue length: %d"%(len(self.messagequeue),)))
 			else:
-				self.logger.debug(eventmessage("queue","handleClientMessage added a new item to the queue. Queue length: %d"%(len(self.messagequeue),)))
+				self.logger.debug(eventmessage("user","handleClientMessage added a new item to the queue. Queue length: %d"%(len(self.messagequeue),)))
 				return False
 			time.sleep(0.01)
 		return True
@@ -70,9 +70,9 @@ class TMoohIUser(TMoohIStatTrack):
 		channelinfo = None
 		if channelname[0] != "#":
 			raise TypeError("PRIVMSG: Invalid channel %s."%(channelname,))
-		self.logger.debug(eventmessage("channel","Trying to join channel %s for client %s/%s"%(channelname, client.nick, client.oauth)))
+		self.logger.debug(eventmessage("user","Trying to join channel %s for client %s/%s"%(channelname, client.nick, client.oauth)))
 		if channelname in self.channels:
-			self.logger.debug(eventmessage("channel","Channel %s already joined. Welcoming client %s/%s"%(channelname, client.nick, client.oauth)))
+			self.logger.debug(eventmessage("user","Channel %s already joined. Welcoming client %s/%s"%(channelname, client.nick, client.oauth)))
 			channelinfo = self.channels[channelname]
 			channelinfo.welcome(client)
 		else:
@@ -115,7 +115,7 @@ class TMoohIUser(TMoohIStatTrack):
 			else:
 				# If we reach this, all available connections (if any) were unable to send the message.
 				# We create a new one (cooldown: 3 seconds) and send the message to the messagequeue.
-				self.logger.debug(eventmessage("connection","Requesting new connection because of %s"%(message[0],)))
+				self.logger.debug(eventmessage("user","Requesting new connection because of %s"%(message[0],)))
 				now = time.time()
 				if now-self._lastNewConnectionRequest>3:
 					self.connections.append(self.parent.TMIConnectionFactory(self))
@@ -215,7 +215,7 @@ class TMoohIUser(TMoohIStatTrack):
 	#because of ratelimits or the like, it pushes the message into the TMoohIManager's messagequeue/joinqueue
 	# returns True if no message was added to the resentqueue, False if there was.
 	def handleClientMessage(self, client, data, appendtoqueue):
-		self.logger.debug(eventmessage("message","Handling message %s for %s"%(data,self.key)))
+		self.logger.debug(eventmessage("user","Handling message %s for %s"%(data,self.key)))
 		# parse the message
 		message = parseIRCMessage(data)
 		cmd = message[STATE_COMMAND].lower()

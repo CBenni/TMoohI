@@ -21,7 +21,7 @@ class TMoohIConnection(TMoohIStatTrack):
 		self.parent = parent
 		self.manager = parent.parent
 		self.logger = self.manager.parent.logger
-		self.logger.info(eventmessage("connect","Connection ID %s created!"%(self.connid,)))
+		self.logger.info(eventmessage("connection","Connection ID %s created!"%(self.connid,)))
 		
 		# list of TMoohIChannels that are supposed to be joined by this connection.
 		self.channels = []
@@ -66,7 +66,7 @@ class TMoohIConnection(TMoohIStatTrack):
 		self._socket.connect((self.ip, self.port))
 		self._recvthread = threading.Thread(target=self.listen)
 		self._recvthread.start()
-		self.logger.info(eventmessage("connect","Connecting to %s/%s for %s"%(self.ip, self.port, self.connid)))
+		self.logger.info(eventmessage("connection","Connecting to %s/%s for %s"%(self.ip, self.port, self.connid)))
 		self.sendraw("CAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands")
 		if self.parent.oauth:
 			self.sendraw("PASS %s"%(self.parent.oauth,))
@@ -90,7 +90,7 @@ class TMoohIConnection(TMoohIStatTrack):
 				s = self._messagebuffer.split("\r\n")
 				self._messagebuffer = s[-1]
 				for line in s[:-1]:
-					self.logger.debug(eventmessage("raw","Got raw TMI message in connection %s: %s"%(self.connid,line)))
+					self.logger.debug(eventmessage("connection","Got raw TMI message in connection %s: %s"%(self.connid,line)))
 					try:
 						ex = parseIRCMessage(line)
 					except Exception:
@@ -99,17 +99,17 @@ class TMoohIConnection(TMoohIStatTrack):
 						self.sendraw("PONG")
 					elif ex[STATE_COMMAND]=="376":
 						self.connected = True
-						self.logger.info(eventmessage("connect","Connection ID %s connected!"%(self.connid,)))
+						self.logger.info(eventmessage("connection","Connection ID %s connected!"%(self.connid,)))
 					elif ex[STATE_COMMAND]=="JOIN":
 						try:
 							self.parent.handleTMIMessage(self, ex)
-							self.logger.info(eventmessage("channel","Joined channel "+ex[STATE_PARAM][0]))
+							self.logger.info(eventmessage("connection","Joined channel "+ex[STATE_PARAM][0]))
 						except Exception:
 							self.logger.exception()
 					elif ex[STATE_COMMAND]=="PART":
 						try:
 							self.parent.handleTMIMessage(self, ex)
-							self.logger.info(eventmessage("channel","Left channel "+ex[STATE_PARAM][0]))
+							self.logger.info(eventmessage("connection","Left channel "+ex[STATE_PARAM][0]))
 						except Exception:
 							self.logger.exception()
 					else:
@@ -121,17 +121,17 @@ class TMoohIConnection(TMoohIStatTrack):
 		self.connected = False
 		self.parent.connections.remove(self)
 		if self.killing:
-			self.logger.info(eventmessage("connect","Connection ID %s killed!"%(self.connid,)))
+			self.logger.info(eventmessage("connection","Connection ID %s killed!"%(self.connid,)))
 		else:
-			self.logger.error(eventmessage("connect","Connection ID %s disconnected!"%(self.connid,)))
+			self.logger.error(eventmessage("connection","Connection ID %s disconnected!"%(self.connid,)))
 			# when the connection dies, rejoin the channels on different (or new) connections
 			for channel in self.channels:
-				self.logger.error(eventmessage("queue","Readding channel %s to the joinqueue!"%(channel.name,)))
+				self.logger.warning(eventmessage("connection","Readding channel %s to the joinqueue!"%(channel.name,)))
 				channel.conn = None
 				self.manager.joinqueue.append({"user":self.parent,"channelinfo":channel})
 	
 	def sendraw(self,x):
-		self.logger.debug(eventmessage("raw","Sending a RAW TMI message on bot %s: %s"%(self.connid,x)))
+		self.logger.debug(eventmessage("connection","Sending a RAW TMI message on bot %s: %s"%(self.connid,x)))
 		self._socket.send((x+"\r\n").encode("utf-8"))
 	
 	def privmsg(self,channelname,message):
@@ -174,13 +174,12 @@ class TMoohIConnection(TMoohIStatTrack):
 		now = time.time()
 		dt = now-self.lastmessage
 		if dt > 30:
-			self.logger.error(eventmessage("connect","Bot %s got silently disconnected. Enabling dead mode."%(self.connid,)))
+			self.logger.error(eventmessage("connection","Bot %s got silently disconnected. Enabling dead mode."%(self.connid,)))
 			self.connected = False
 			self.dead = True
-			self.killing = True
 			self._socket.close()
 		elif dt > 15:
-			self.logger.debug(eventmessage("connect","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
+			self.logger.debug(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
 			self.sendraw("PING")
 				
 	
@@ -188,7 +187,7 @@ class TMoohIConnection(TMoohIStatTrack):
 		"""
 		Simulates the socket getting killed
 		"""
-		self.logger.info(eventmessage("kill","Killing bot %s"%(self.connid,)))
+		self.logger.info(eventmessage("connection","Killing bot %s"%(self.connid,)))
 		self.killing = True
 		self.connected = False
 		self._socket.close()
@@ -197,13 +196,13 @@ class TMoohIConnection(TMoohIStatTrack):
 		"""
 		Simulates the connection being closed
 		"""
-		self.logger.info(eventmessage("kill","Disconnecting bot %s"%(self.connid,)))
+		self.logger.info(eventmessage("connection","Disconnecting bot %s"%(self.connid,)))
 		self.sendraw("PRIVMSG #jtv :/DISCONNECT")
 	
 	def die(self):
 		"""
 		Simulates the server silently disconnecting us
 		"""
-		self.logger.info(eventmessage("kill","Dieing bot %s"%(self.connid,)))
+		self.logger.info(eventmessage("connection","Dieing bot %s"%(self.connid,)))
 		self.ignoring = True
 			

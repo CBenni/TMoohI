@@ -17,8 +17,25 @@ class TMoohIChannel(TMoohIStatTrack):
 		
 		self.stats = {
 			"name": self.name,
-			"data": self.dataDict
+			"data": self.dataDict,
+			"connection": self.getConnId,
+			"joined": self.getJoinStatus
 		}
+	
+	def getConnId(self):
+		if self.conn:
+			return self.conn.connid
+		else:
+			return None
+	
+	def getJoinStatus(self):
+		if self.conn:
+			if self.data["JOIN"]:
+				return True
+			else:
+				return False
+		else:
+			return False
 	
 	def setData(self,ex):
 		if ex[STATE_COMMAND] == "ROOMSTATE":
