@@ -14,6 +14,7 @@ class TMoohIConnection(TMoohIStatTrack):
 		self.killing = False
 		self.dead = False
 		self.ignoring = False
+		self.shutdown = False
 		self.connid = connid
 		
 		self.lastmessage = time.time()
@@ -118,17 +119,28 @@ class TMoohIConnection(TMoohIStatTrack):
 			pass
 		except Exception:
 			self.logger.exception()
-		self.connected = False
-		self.parent.connections.remove(self)
-		if self.killing:
-			self.logger.info(eventmessage("connection","Connection ID %s killed!"%(self.connid,)))
+		self.shutdown()
+		
+	
+	def shutdown(self):
+		if self.shutdown:
+			self.logger.warning(eventmessage("connection","Tried to shutdown a non-connected socket."))
 		else:
-			self.logger.error(eventmessage("connection","Connection ID %s disconnected!"%(self.connid,)))
-			# when the connection dies, rejoin the channels on different (or new) connections
-			for channel in self.channels:
-				self.logger.warning(eventmessage("connection","Readding channel %s to the joinqueue!"%(channel.name,)))
-				channel.conn = None
-				self.manager.joinqueue.append({"user":self.parent,"channelinfo":channel})
+			self.shutdown = True
+			self.connected = False
+			self.parent.connections.remove(self)
+			if self.killing:
+				self.logger.info(eventmessage("connection","Connection ID %s killed!"%(self.connid,)))
+			else:
+				self.logger.error(eventmessage("connection","Connection ID %s disconnected!"%(self.connid,)))
+				# when the connection dies, rejoin the channels on different (or new) connections
+				for channel in self.channels:
+					self.logger.warning(eventmessage("connection","Readding channel %s to the joinqueue!"%(channel.name,)))
+					channel.conn = None
+					self.manager.joinqueue.append({"user":self.parent,"channelinfo":channel})
+				self.channels = []
+			self._socket.shutdown(socket.SHUT_RDWR)
+			self._socket.close()
 	
 	def sendraw(self,x):
 		self.logger.debug(eventmessage("connection","Sending a RAW TMI message on bot %s: %s"%(self.connid,x)))
@@ -177,9 +189,12 @@ class TMoohIConnection(TMoohIStatTrack):
 			self.logger.error(eventmessage("connection","Bot %s got silently disconnected. Enabling dead mode."%(self.connid,)))
 			self.connected = False
 			self.dead = True
-			self._socket.close()
-		elif dt > 15:
-			self.logger.debug(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
+			self.shutdown()
+		elif dt > 10:
+			if dt > 20:
+				self.logger.warning(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
+			else:
+				self.logger.debug(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
 			self.sendraw("PING")
 				
 	
