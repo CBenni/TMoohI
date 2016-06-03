@@ -14,7 +14,7 @@ class TMoohIConnection(TMoohIStatTrack):
 		self.killing = False
 		self.dead = False
 		self.ignoring = False
-		self.shutdown = False
+		self.isshutdown = False
 		self.connid = connid
 		
 		self.lastmessage = time.time()
@@ -123,10 +123,10 @@ class TMoohIConnection(TMoohIStatTrack):
 		
 	
 	def shutdown(self):
-		if self.shutdown:
+		if self.isshutdown:
 			self.logger.warning(eventmessage("connection","Tried to shutdown a non-connected socket."))
 		else:
-			self.shutdown = True
+			self.isshutdown = True
 			self.connected = False
 			self.parent.connections.remove(self)
 			if self.killing:
