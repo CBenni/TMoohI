@@ -272,7 +272,10 @@ class TMoohIUser(TMoohIStatTrack):
 		try:
 			for client in self.clients:
 				if channel == None or channel.name in client.channels:
-					client.request.sendall((message+"\r\n").encode("utf-8"))
+					try:
+						client.request.sendall((message+"\r\n").encode("utf-8"))
+					except BrokenPipeError:
+						self.logger.error(eventmessage("user","Client %s/%s disconnected during broadcast"%(client.nick, client.oauth)))
 		except Exception:
 			self.logger.exception()
 
