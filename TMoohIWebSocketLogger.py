@@ -56,10 +56,11 @@ class TMoohIWebsocketServer:
 			self.loop.close()
 
 class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
+	def __init__(self):
+		self.filters = copy.deepcopy(self.factory.defaultfilter)
+		
 	def onConnect(self, request):
 		self.factory.logger.writers.append(self)
-		self.level = 0
-		self.filters = copy.deepcopy(self.factory.defaultfilter)
 		self.factory.logger.debug(eventmessage("websocket","Websocket connecting: {}".format(request.peer)))
 
 	def onOpen(self):
