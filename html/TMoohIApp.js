@@ -14,7 +14,8 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	$scope.selectedChannel = null;
 	$scope.selectedConnection = null;
 
-	self.websocket = new WebSocket('ws://'+window.location.hostname+':3141');
+    var websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+	self.websocket = new WebSocket(websocketProtocol + '//'+window.location.hostname+':3141');
 	self.websocket.onopen = function(e) {
 		self.websocket.send('SETFILTER [{"level__ge":10},{"type":"status"}]')
 	}
