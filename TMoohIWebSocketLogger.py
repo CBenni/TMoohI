@@ -47,6 +47,7 @@ class TMoohIWebsocketServer:
 		self.server = self.loop.run_until_complete(coro)
 
 		try:
+			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer started!"))
 			self.loop.run_forever()
 		except KeyboardInterrupt:
 			pass
@@ -56,8 +57,10 @@ class TMoohIWebsocketServer:
 			self.loop.close()
 
 class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
-	def __init__(self):
+	def __init__(self, request):
+		print("Client connecting")
 		self.filters = copy.deepcopy(self.factory.defaultfilter)
+		print("Client connecting 2")
 		
 	def onConnect(self, request):
 		self.factory.logger.writers.append(self)

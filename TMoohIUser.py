@@ -86,16 +86,19 @@ class TMoohIUser(TMoohIStatTrack):
 		try:
 			# remove from the channel
 			del client.channels[channelname]
-			client.request.sendall((":{nick}!{nick}@{nick}.tmi.twitch.tv PART {chan}".format(nick=self.nick,chan=channelname)).encode("utf-8"))
+			client.request.sendall((":{nick}!{nick}@{nick}.tmi.twitch.tv PART {chan}\n".format(nick=self.nick,chan=channelname)).encode("utf-8"))
 		except KeyError:
-			pass
+			self.logger.warning(eventmessage("user","Client %s/%s tried to leave channel %s, but it wasnt joined."%(client.nick, client.oauth, channelname)))
 		# if there are no clients for this channel left, we leave the channel
 		for otherclient in self.clients:
 			if(channelname in otherclient.channels):
 				return
-		self.channels[channelname].part()
-		# remove from channels
-		del self.channels[channelname]
+		if channelname in self.channels:
+			self.channels[channelname].part()
+			# remove from channels
+			del self.channels[channelname]
+		else:
+			self.logger.warning(eventmessage("user","Tried to leave channel %s, but it wasnt joined."%(channelname,)))
 
 	def privmsg(self, message, appendtoqueue):
 		if not message[STATE_TRAILING]:
@@ -240,8 +243,8 @@ class TMoohIUser(TMoohIStatTrack):
 		if message[STATE_PREFIX] == ownhostmask and message[STATE_COMMAND] in ["PRIVMSG",]:
 			# eat messages from "myself".
 			return
-		if message[STATE_COMMAND] in ["001","002","003","004","375","372","376","PONG","CAP"]:
-			# eat numeric "welcome" messages as well as pongs and caps.
+		if message[STATE_COMMAND] in ["001","002","003","004","375","372","376","PONG","CAP","PART"]:
+			# eat numeric "welcome" messages as well as pongs and caps, as well as parts.
 			return
 		if message[STATE_COMMAND] == "GLOBALUSERSTATE":
 			self.globaluserstate = message[0]

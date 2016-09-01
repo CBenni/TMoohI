@@ -60,7 +60,7 @@ class TMoohIServer():
 		self.filelogger = filewriter(self.config["logfile"])
 		self.filelogger.filters = [{ "level__ge": self.config["logfile-loglevel"] }]
 		self.consolelogger = consolewriter()
-		self.consolelogger.filters = [{ "level__ge": self.config["console-loglevel"] }]
+		self.consolelogger.filters = [{ "level__ge": self.config["console-loglevel"], "type": "event" }]
 		self.logger.writers.append(self.filelogger)
 		self.logger.writers.append(self.consolelogger)
 		self.logger.info(eventmessage("general","%s loaded"%(self.BuildInfo,)))
