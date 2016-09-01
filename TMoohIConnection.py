@@ -128,7 +128,11 @@ class TMoohIConnection(TMoohIStatTrack):
 		else:
 			self.isshutdown = True
 			self.connected = False
-			self.parent.connections.remove(self)
+			try:
+				self.parent.connections.remove(self)
+			except KeyError:
+				# we have already warned about this.
+				pass
 			if self.killing:
 				self.logger.info(eventmessage("connection","Connection ID %s killed!"%(self.connid,)))
 			else:
@@ -139,8 +143,12 @@ class TMoohIConnection(TMoohIStatTrack):
 					channel.conn = None
 					self.manager.joinqueue.append({"user":self.parent,"channelinfo":channel})
 				self.channels = []
-			self._socket.shutdown(socket.SHUT_RDWR)
-			self._socket.close()
+			try:
+				self._socket.shutdown(socket.SHUT_RDWR)
+				self._socket.close()
+			except OSError:
+				# this will usually be thrown if the process is murdered or something, aka the connection was already cut, no need to shut down in that case.
+				pass
 	
 	def sendraw(self,x):
 		self.logger.debug(eventmessage("connection","Sending a RAW TMI message on bot %s: %s"%(self.connid,x)))

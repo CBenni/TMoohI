@@ -4,8 +4,11 @@ port:                  6667
 websockethost:         'localhost'
 websocketport:         3141
 logfile:               'tmoohi_%Y_%m_%d.log'
-logfile-loglevel:      10
-console-loglevel:      0
+logfile-logfilter:     
+-   level__ge:         10
+    type:              'event'
+console-logfilter:     
+-   level__ge:         10
+    type:              'event'
 status-json:           'tmoohi-status.json'
-cluster-seperator:     '@'
 channels-per-connection: 10

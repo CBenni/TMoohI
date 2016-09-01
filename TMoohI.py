@@ -38,8 +38,8 @@ class TMoohIServer():
 			"websockethost": "localhost",
 			"websocketport": 3141,
 			"logfile":"tmoohi_%Y_%m_%d.log",
-			"logfile-loglevel": 10,
-			"console-loglevel": 0,
+			"logfile-logfilter": [{'level__ge': 20, 'type': 'event'}],
+			'console-logfilter': [{'level__ge': 0, 'type': 'event'}],
 			"status-json":"tmoohi-status.json",
 			"channels-per-connection": 10
 		}
@@ -58,9 +58,9 @@ class TMoohIServer():
 		
 		self.logger = MoohLogger()
 		self.filelogger = filewriter(self.config["logfile"])
-		self.filelogger.filters = [{ "level__ge": self.config["logfile-loglevel"] }]
+		self.filelogger.filters = self.config["logfile-logfilter"]
 		self.consolelogger = consolewriter()
-		self.consolelogger.filters = [{ "level__ge": self.config["console-loglevel"], "type": "event" }]
+		self.consolelogger.filters = self.config["console-logfilter"]
 		self.logger.writers.append(self.filelogger)
 		self.logger.writers.append(self.consolelogger)
 		self.logger.info(eventmessage("general","%s loaded"%(self.BuildInfo,)))
