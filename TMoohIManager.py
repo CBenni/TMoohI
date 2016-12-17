@@ -50,7 +50,7 @@ class TMoohIManager(TMoohIStatTrack):
 	def TMIConnectionFactory(self,user):
 		now = time.time()
 		self._conn_join_times = [i for i in self._conn_join_times if i>now-10]
-		if len(self._conn_join_times)>40:
+		if len(self._conn_join_times)>self.parent.config["connections-per-10"]:
 			raise RateLimitError('Creating connection for user ' + user.nick)
 		else:
 			self._conn_join_times.append(now)
@@ -95,7 +95,7 @@ class TMoohIManager(TMoohIStatTrack):
 		# try joining this channel
 		for conn in user.connections:
 			try:
-				if len(self._conn_join_times) < 45:
+				if len(self._conn_join_times) < self.parent.config["connections-per-10"]:
 					conn.join(channelinfo)
 					self._conn_join_times.append(time.time())
 					self.logger.debug(eventmessage("manager","Channel %s joined on connection %s"%(channelinfo.name,conn.connid)))
@@ -118,8 +118,8 @@ class TMoohIManager(TMoohIStatTrack):
 					for userkey,user in self.users.items():
 						if self.quitting:
 							return
-						if len(self._conn_join_times) < 40:
-							if user.getTotalChannels() >= 0.75 * user.getCapacity():
+						if len(self._conn_join_times) < self.parent.config["connections-per-10"]:
+							if user.getTotalChannels() >= self.parent.config["capacity-target"] * user.getCapacity():
 								self.logger.debug(eventmessage("manager","Requesting new connection for %s because of exceeded capacity"%(user.key,)))
 								# request new connection
 								user.connections.append(self.TMIConnectionFactory(user))
@@ -134,7 +134,7 @@ class TMoohIManager(TMoohIStatTrack):
 				while iterator < len(self.joinqueue):
 					if self.quitting:
 						return
-					if len(self._conn_join_times) >= 45:
+					if len(self._conn_join_times) >= self.parent.config["connections-per-10"]:
 						break
 					
 					# dequeue a channel and try to join it

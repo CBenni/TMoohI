@@ -12,3 +12,7 @@ console-logfilter:
     type:              'event'
 status-json:           'tmoohi-status.json'
 channels-per-connection: 10
+messages-per-30:       15
+connections-per-10:    45
+capacity-target:       0.75
+ratelimit-commands:    true
