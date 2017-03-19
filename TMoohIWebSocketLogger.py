@@ -37,7 +37,7 @@ class TMoohIWebsocketServer:
 		try:
 			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer starting!"))
 			self.server.serveforever()
-		except KeyboardInterrupt:
+		except (KeyboardInterrupt, OSError):
 			pass
 		finally:
 			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shut down!"))
