@@ -157,9 +157,12 @@ class TMoohIConnection(TMoohIStatTrack):
 	def privmsg(self,channelname,message):
 		if not self.connected:
 			raise NotConnectedError()
+		if self.manager.parent.config["ratelimit-commands"] == False and message[0] == "/" or message[0] == ".":
+			self.sendraw("PRIVMSG %s %s"%(channelname,message))
+			return
 		now = time.time()
 		self._sentmessages = [i for i in self._sentmessages if i>now-30]
-		if len(self._sentmessages)>15:
+		if len(self._sentmessages)>self.manager.parent.config["messages-per-30"]:
 			raise RateLimitError('Sending "PRIVMSG %s :%s" on connection ID %s'%(channelname,message,self.connid))
 		else:
 			self.sendraw("PRIVMSG %s %s"%(channelname,message))

@@ -39,9 +39,13 @@ class TMoohIServer():
 			"websocketport": 3141,
 			"logfile":"tmoohi_%Y_%m_%d.log",
 			"logfile-logfilter": [{'level__ge': 20, 'type': 'event'}],
-			'console-logfilter': [{'level__ge': 0, 'type': 'event'}],
+			"console-logfilter": [{'level__ge': 0, 'type': 'event'}],
 			"status-json":"tmoohi-status.json",
-			"channels-per-connection": 10
+			"channels-per-connection": 10,
+			"messages-per-30": 15,
+			"connections-per-10": 45,
+			"capacity-target": 0.75,
+			"ratelimit-commands": True
 		}
 		
 		for k in config.__dict__:
