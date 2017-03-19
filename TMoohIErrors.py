@@ -33,3 +33,9 @@ class BubbleEvent(Exception):
 		pass
 	def __str__(self):
 		return "BubbleEvent"
+
+class AlreadyDefinedError(Exception):
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)

@@ -5,79 +5,65 @@ import threading
 
 import MoohLog
 from MoohLog import statusmessage, eventmessage, MoohLogger
-from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
-
+from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+TEXT = 0x01
+from TMoohIErrors import AlreadyDefinedError
+websocketServer = None
 class TMoohIWebsocketServer:
 	def __init__(self, logger, host, port, defaultfilter = []):
+		global websocketServer
+		if websocketServer != None:
+			raise AlreadyDefinedError("Websocket server already created.")
+		websocketServer = self
+		
 		self.logger = logger
 		self.host = host
 		self.port = port
+		self.defaultfilter = defaultfilter
 		
 		
-		self.server = None
-		self.loop = None
-		
-		self.factory = WebSocketServerFactory()
-		self.factory.protocol = websocketlogger
-		self.factory.connections = []
-		self.factory.server = self
-		self.factory.logger = self.logger
-		self.factory.defaultfilter = defaultfilter
-		self.factory.neweststatus = None
+		self.server = SimpleWebSocketServer(self.host, self.port, websocketlogger)
 		self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up on %s:%s!"%(self.host, self.port)))
 		
 		self.serverthread = threading.Thread(target = self.runserver)
 		self.serverthread.start()
+		self.neweststatus = {}
 	
 	def quit(self):
 		self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shutting down!"))
 		self.server.close()
-		self.loop.call_soon_threadsafe(self.loop.stop)
-		self.loop.stop()
-	
-	def broadcast(self,level,message):
-		for conn in self.factory.connections:
-			conn.postMessage(level,message)
 	
 	def runserver(self):
-		self.loop = asyncio.new_event_loop()
-		asyncio.set_event_loop(self.loop)
-		
-		coro = self.loop.create_server(self.factory, self.host, self.port)
-		self.server = self.loop.run_until_complete(coro)
-
 		try:
-			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer started!"))
-			self.loop.run_forever()
+			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer starting!"))
+			self.server.serveforever()
 		except KeyboardInterrupt:
 			pass
 		finally:
 			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shut down!"))
 			self.server.close()
-			self.loop.close()
 
-class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
-	def __init__(self, request):
-		print("Client connecting")
-		self.filters = copy.deepcopy(self.factory.defaultfilter)
-		print("Client connecting 2")
+class websocketlogger(WebSocket, MoohLog.logwriter):
+	#def __init__(self, svr, sock, adr):
+	#	super().__init__(svr, sock, adr)
+	#	websocketServer.logger.debug(eventmessage("websocket","Websocket connecting: {}".format(adr)))
+	#	self.filters = copy.deepcopy(websocketServer.defaultfilter)
 		
-	def onConnect(self, request):
-		self.factory.logger.writers.append(self)
-		self.factory.logger.debug(eventmessage("websocket","Websocket connecting: {}".format(request.peer)))
-
-	def onOpen(self):
-		self.factory.logger.debug(eventmessage("websocket","WebSocket connection open."))
+	def handleConnected(self):
+		self.filters = copy.deepcopy(websocketServer.defaultfilter)
+		
+		websocketServer.logger.writers.append(self)
+		websocketServer.logger.debug(eventmessage("websocket","Websocket connected: {}".format(self.address[0])))
 		# when opening a connection, send the current state
-		self.inner_write(statusmessage(self.factory.neweststatus))
-
-	def onMessage(self, payload, isBinary):
-		if isBinary:
-			self.factory.logger.debug(eventmessage("websocket","Binary websocket message received: {} bytes".format(len(payload))))
+		self.inner_write(statusmessage(websocketServer.neweststatus))
+	
+	def handleMessage(self):
+		if self.opcode != TEXT:
+			websocketServer.logger.debug(eventmessage("websocket","Websocket message received: {} bytes".format(len(self.data))))
 		else:
-			self.factory.logger.debug(eventmessage("websocket","Websocket text message received: {}".format(payload.decode('utf8'))))
+			websocketServer.logger.debug(eventmessage("websocket","Websocket text message received: {}".format(self.data)))
 			try:
-				res = payload.decode('utf8').split(" ",1)
+				res = self.data.split(" ",1)
 				command = res[0]
 				data = ""
 				if len(res) == 2:
@@ -111,20 +97,19 @@ class websocketlogger(WebSocketServerProtocol,MoohLog.logwriter):
 					response.level = MoohLogger.ERROR
 					self.inner_write(response)
 			except Exception:
-				self.factory.logger.exception()
+				websocketServer.logger.exception()
 
 	def inner_write(self,message):
 		try:
-			self.sendMessage(json.dumps(message.serialize()).encode("utf-8"))
+			self.sendMessage(json.dumps(message.serialize()))#.encode("utf-8")
 		except Exception:
 			pass
 
-	def onClose(self, wasClean, code, reason):
+	def handleClose(self):
 		try:
-			self.factory.logger.writers.remove(self)
+			websocketServer.logger.writers.remove(self)
 		except ValueError:
 			pass
-		if wasClean:
-			self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed: {}".format(reason)))
-		else:
-			self.factory.logger.debug(eventmessage("websocket","WebSocket connection closed unexpectedly: {}".format(reason)))
+		websocketServer.logger.debug(eventmessage("websocket","WebSocket connection closed"))
+		#else:
+		#	websocketServer.logger.debug(eventmessage("websocket","WebSocket connection closed unexpectedly: {}".format(reason)))

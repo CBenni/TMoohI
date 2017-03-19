@@ -22,7 +22,6 @@ html, body {
 
 .box {
 	background: #FFF;
-	min-height: 600px !important;
 }
 
 .logo-container {
@@ -123,4 +122,20 @@ span.badges {
 
 .selectedChannel {
 	background-color: #eeeeff;
+}
+
+td {
+	height: 42px;
+	padding: 0 8px;
+}
+
+.filter {
+	background-color: #EEE;
+}
+
+.blue-icon svg {
+	fill: #0159A3;
+}
+.red-icon svg {
+	fill: #F4511E;
 }

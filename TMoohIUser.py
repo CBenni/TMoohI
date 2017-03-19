@@ -121,8 +121,11 @@ class TMoohIUser(TMoohIStatTrack):
 				self.logger.debug(eventmessage("user","Requesting new connection because of %s"%(message[0],)))
 				now = time.time()
 				if now-self._lastNewConnectionRequest>3:
-					self.connections.append(self.parent.TMIConnectionFactory(self))
-					self._lastNewConnectionRequest = now
+					try:
+						self._lastNewConnectionRequest = now
+						self.connections.append(self.parent.TMIConnectionFactory(self))
+					except RateLimitError:
+						pass
 				# (re)add to messagequeue. message[0] is the original message
 				if appendtoqueue:
 					self.messagequeue.append({"user":self,"message":message[0]})

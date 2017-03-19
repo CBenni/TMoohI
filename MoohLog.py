@@ -83,6 +83,8 @@ MOOHLOGFILTERS = {
 
 
 def filter_value(key,val,data):
+    if len(key) == 0:
+        return True # if we have an empty key, we just skip it.
     # keys starting with ! invert the filter result
     invert = key[0] == "!"
     if invert:

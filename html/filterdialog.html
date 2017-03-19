@@ -1,0 +1,63 @@
+<md-dialog>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+		<h2>Set a custom filter</h2>
+		</div>
+	</md-toolbar>
+	
+	<md-dialog-content layout-padding>
+		<p>The following elements will be returned:</p>
+		<div class="filters" ng-repeat="filter in filtersAsPropertyList">
+			<span ng-if="!$first">OR</span>
+			<table class="filter">
+				<tr>
+					<th><md-button class="md-icon-button" ng-click="deleteFilter($index)"><md-icon md-svg-icon="delete.svg" class="red-icon"></md-icon></md-button></th>
+					<th>Property</th>
+					<th>Value</th>
+					<th></th>
+				</tr>
+				<tr ng-repeat="property in filter">
+					<td><span ng-if="!$first">AND</span></td>
+					<td>
+						<input type="text" ng-model="property.key" ng-change="updateFilters()" />
+						<select ng-model="property.comparator" ng-change="updateFilters()">
+							<option value="">=</option>
+							<option value="ge">&ge;</option>
+							<option value="gt">&gt;</option>
+							<option value="le">&le;</option>
+							<option value="lt">&lt;</option>
+							<option value="ne">!=</option>
+							<option value="isnull">is null</option>
+							<option value="iexact">equals (case invariant)</option>
+							<option value="containedby">contained by</option>
+							<option value="icontainedby">contained by (case invariant)</option>
+							<option value="contains">contains</option>
+							<option value="icontains">contains (case invariant)</option>
+							<option value="startswith">starts with</option>
+							<option value="endswith">ends with</option>
+						</select>
+					</td>
+					<td><input type="text" ng-model="property.value" ng-change="updateFilters()" /></td>
+					<td><md-button class="md-icon-button" ng-click="deleteProperty(filter, $index)"><md-icon md-svg-icon="delete.svg" class="red-icon"></md-icon></md-button></td>
+				</tr>
+				<tr>
+					<td><md-button class="md-icon-button" ng-click="addProperty(filter)"><md-icon md-svg-icon="add.svg" class="blue-icon"></md-icon></md-button></td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			</table>
+		</div>
+		<md-button class="md-icon-button" ng-click="addFilter()"><md-icon md-svg-icon="add.svg" class="blue-icon"></md-icon></md-button>
+		<div>
+			<input type="checkbox" ng-model="showRaw">Advanced</input><br>
+			<input type="text" ng-model="textFilters" ng-change="updateFiltersByText()" style="width: 500px" ng-show="showRaw"/>
+		</div>
+	</md-dialog-content>
+	<md-dialog-actions layout="row">
+		<span flex></span>
+		<md-button ng-click="cancel()">Cancel</md-button>
+		<md-button ng-click="apply()">Apply</md-button>
+		<md-button ng-click="ok()">Ok</md-button>
+	</md-dialog-actions>
+</md-dialog>

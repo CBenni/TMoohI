@@ -35,7 +35,7 @@ class TMoohIServer():
 		self.config = {
 			"port": 6667,
 			"host":"localhost",
-			"websockethost": "localhost",
+			"websockethost": "127.0.0.1",
 			"websocketport": 3141,
 			"logfile":"tmoohi_%Y_%m_%d.log",
 			"logfile-logfilter": [{'level__ge': 20, 'type': 'event'}],

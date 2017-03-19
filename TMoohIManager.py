@@ -174,7 +174,7 @@ class TMoohIManager(TMoohIStatTrack):
 			if cnt%10==0:
 				try:
 					serialized = self.serialize()
-					self.parent.websocketserver.factory.neweststatus = serialized
+					self.parent.websocketserver.neweststatus = serialized
 					self.logger.log(1,MoohLog.statusmessage(serialized))
 				except Exception:
 					self.logger.exception()

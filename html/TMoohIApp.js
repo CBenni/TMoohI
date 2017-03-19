@@ -1,9 +1,9 @@
-var TMoohIApp = angular.module("TMoohIApp",['ngSanitize','ngMaterial']);
+var TMoohIApp = angular.module("TMoohIApp",['ngMaterial']);
 
 LEVELS = { 0:"DEBUG", 10:"INFO", 20:"WARNING", 30:"ERROR", 40:"EXCEPTION", 50:"FATAL" }
 
 
-TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $http){
+TMoohIApp.controller("StatusController", ["$scope", "$http", "$mdDialog", function($scope, $http, $mdDialog){
 	var self = this;
 	_self = this;
 	_scope = $scope;
@@ -13,11 +13,16 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	$scope.collapseFeed = false;
 	$scope.selectedChannel = null;
 	$scope.selectedConnection = null;
+	$scope.filters = [{"level__ge":10},{"type":"status"}];
 
     var websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-	self.websocket = new WebSocket(websocketProtocol + '//'+window.location.hostname+':3141');
+	self.websocket = new WebSocket(websocketProtocol + '//'+window.location.hostname+':8365');
+	
+	
 	self.websocket.onopen = function(e) {
-		self.websocket.send('SETFILTER [{"level__ge":10},{"type":"status"}]')
+		$scope.$watch("filters", function() {
+			self.websocket.send('SETFILTER '+angular.toJson($scope.filters));
+		}, true);
 	}
 	self.websocket.onmessage = function(e) {
 		var message = JSON.parse(e.data);
@@ -43,6 +48,21 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", function($scope, $h
 	self.selectConnection = function(userInfo, conn) {
 		$scope.selectedConnection = conn;
 		conn.user = userInfo;
+	}
+	
+	$scope.showFilterDialog = function(ev) {
+		$mdDialog.show({
+			controller: "FilterDialogController",
+			templateUrl: 'filterdialog.html',
+			targetEvent: ev,
+			fullscreen: true,
+			preserveScope: true,
+			scope: $scope
+		}).then(function(newFilters) {
+			$scope.filters = newFilters;
+		}).catch(function() {
+			// do nothing
+		});
 	}
 }]);
 
@@ -83,6 +103,89 @@ TMoohIApp.filter("badgetitle",function() {
 	return function(input, defaultValue) {
 		return input.replace("_"," ").replace(/\b\w/g,function(m){return m.toUpperCase();});
 	}
+});
+
+TMoohIApp.controller("FilterDialogController", function($scope, $mdDialog) {
+	console.log($scope);
+	var oldFilters = $scope.filters;
+	var returnValue = $scope.filters;
+	function updateFiltersAsPropertyList() {
+		var x = [];
+		for(var i=0;i<returnValue.length;++i) {
+			var f = [];
+			var keys = Object.keys(returnValue[i]);
+			for(var j=0;j<keys.length;++j) {
+				var key = keys[j];
+				var match = /(.*)(?:__([a-z]*))/.exec(key) || [key, key, ""];
+				f.push({key: match[1], comparator: match[2], value: returnValue[i][keys[j]]});
+			}
+			x.push(f)
+		}
+		$scope.filtersAsPropertyList = x;
+	}
+	updateFiltersAsPropertyList();
+	
+	$scope.textFilters = angular.toJson(returnValue);
+	$scope.updateFilters = function() {
+		returnValue = [];
+		var l = $scope.filtersAsPropertyList;
+		for(var i=0;i<l.length;++i) {
+			var f = {};
+			for(var j=0;j<l[i].length;++j) {
+				var key = l[i][j].key;
+				var comp = l[i][j].comparator;
+				if(comp && comp.length > 0) key += "__"+l[i][j].comparator;
+				var val = l[i][j].value;
+				var ival = parseInt(val);
+				if(ival.toString() == val) val = ival;
+				else {
+					var fval = parseFloat(val);
+					if(fval.toString() == val) val = fval;
+				}
+				f[key] = val;
+			}
+			returnValue.push(f);
+		}
+		$scope.textFilters = angular.toJson(returnValue);
+	};
+	
+	$scope.ok = function() {
+		$scope.filters = returnValue;
+		$mdDialog.hide(returnValue);
+	}
+	
+	$scope.apply = function() {
+		$scope.filters = returnValue;
+	}
+	
+	$scope.cancel = function() {
+		$scope.filters = oldFilters;
+		$mdDialog.cancel();
+	}
+	
+	$scope.updateFiltersByText = function() {
+		returnValue = JSON.parse($scope.textFilters);
+		updateFiltersAsPropertyList();
+	}
+	
+	$scope.addProperty = function(filter) {
+		filter.push({key:"",value:"",comparator:""});
+		$scope.updateFilters();
+	}
+	$scope.deleteProperty = function(filter, index) {
+		filter.splice(index, 1);
+		$scope.updateFilters();
+	}
+	$scope.addFilter = function(filter) {
+		$scope.filtersAsPropertyList.push([{key:"",value:"",comparator:""}]);
+		$scope.updateFilters();
+	}
+	$scope.deleteFilter = function(index) {
+		$scope.filtersAsPropertyList.splice(index, 1);
+		$scope.updateFilters();
+	}
+	
+	// do nothing so far
 });
 
 /*TMoohIApp.filter("userstate",function($sce,$http) {
