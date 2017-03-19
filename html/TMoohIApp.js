@@ -2,6 +2,7 @@ var TMoohIApp = angular.module("TMoohIApp",['ngMaterial']);
 
 LEVELS = { 0:"DEBUG", 10:"INFO", 20:"WARNING", 30:"ERROR", 40:"EXCEPTION", 50:"FATAL" }
 
+var ws_url = "";
 
 TMoohIApp.controller("StatusController", ["$scope", "$http", "$mdDialog", function($scope, $http, $mdDialog){
 	var self = this;
@@ -16,7 +17,7 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", "$mdDialog", functi
 	$scope.filters = [{"level__ge":10},{"type":"status"}];
 
     var websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-	self.websocket = new WebSocket(websocketProtocol + '//'+window.location.hostname+':8365');
+	self.websocket = new WebSocket(ws_url || websocketProtocol + '//'+window.location.hostname+':3141');
 	
 	
 	self.websocket.onopen = function(e) {
