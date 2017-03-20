@@ -1,0 +1,17 @@
+{
+  "name": "TMoohIStatus",
+  "homepage": "https://github.com/CBenni/TMoohI",
+  "authors": [
+    "CBenni <levelcarnage@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

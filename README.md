@@ -31,6 +31,10 @@ python TMoohI.py
 
 Connect the same way as you would for twitch. Ignore rate limits. Be happy.
 
+In order to use the status page, you need to install bower, and in html/ run
+```bower i```
+If you changed the websocket port in the TMoohI config, or you are using a non-standard setup, set `ws_url` to the new host/port combo in html/TMoohIApp.js
+
 # License
 [![Creative Commons License](https://i.creativecommons.org/l/by-nc/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc/4.0/)
 <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title">TMoohI</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">CBenni</span> is licensed under a [Creative Commons Attribution-NonCommercial 4.0 International License](http://creativecommons.org/licenses/by-nc/4.0/).
