@@ -24,8 +24,8 @@ class TMoohIWebsocketServer:
 		self.clients = []
 		
 		
-		self.server = SimpleWebSocketServer(self.host, self.port, websocketlogger)
 		self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up on %s:%s!"%(self.host, self.port)))
+		self.server = SimpleWebSocketServer(self.host, self.port, websocketlogger)
 		
 		self.serverthread = threading.Thread(target = self.runserver)
 		self.serverthread.start()

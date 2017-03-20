@@ -21,7 +21,7 @@ from MoohLog import MoohLogger, filewriter, consolewriter, eventmessage
 # as well as initialisation and message processing.
 # Note that it will not interact with IRC directly
 class TMoohIServer():
-	def __init__(self,config):
+	def __init__(self,config, extraargs):
 		self.BuildInfo = BuildCounter.getVersionInfo("TMoohI",["py","html","css","js"])
 		
 		self.quitting = False
@@ -40,7 +40,6 @@ class TMoohIServer():
 			"logfile":"tmoohi_%Y_%m_%d.log",
 			"logfile-logfilter": [{'level__ge': 20, 'type': 'event'}],
 			"console-logfilter": [{'level__ge': 0, 'type': 'event'}],
-			"status-json":"tmoohi-status.json",
 			"channels-per-connection": 10,
 			"messages-per-30": 15,
 			"connections-per-10": 45,
@@ -48,17 +47,23 @@ class TMoohIServer():
 			"ratelimit-commands": True
 		}
 		
-		for k in config.__dict__:
-			if k in ["servers"]:
-				self.config[k] = json.loads(config.__dict__[k])
-			else:
-				self.config[k] = config.__dict__[k]
 		
 		if config.config:
 			with open(config.config) as f:
 				data = yaml.load(f)
 				for k in data:
 					self.config[k] = data[k]
+		
+		configerrors = []
+		for k in extraargs:
+			try:
+				value = extraargs[k]
+				self.config[k] = type(self.config[k])(value)
+			except KeyError:
+				configerrors.append("Key %s not present in config"%(k,))
+			except Exception as e:
+				configerrors.append("%s for configuration option --%s %s"%(e,k,value))
+		
 		
 		self.logger = MoohLogger()
 		self.filelogger = filewriter(self.config["logfile"])
@@ -67,6 +72,10 @@ class TMoohIServer():
 		self.consolelogger.filters = self.config["console-logfilter"]
 		self.logger.writers.append(self.filelogger)
 		self.logger.writers.append(self.consolelogger)
+		
+		for e in configerrors:
+			self.logger.error(eventmessage("configuration",e))
+		
 		self.logger.info(eventmessage("general","%s loaded"%(self.BuildInfo,)))
 		self.logger.info(eventmessage("general","Starting TMoohI server on port %d - CTRL+C to stop"%(self.config["port"],)))
 		
@@ -186,11 +195,15 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
 	def channelList(self):
 		return list(self.channels.keys())
 
+def parse_unknown_args(l):
+	return dict(zip(map(lambda x:x.replace("--",""),l[::2]),l[1::2]))
+		
+		
 def main(argv):
 	parser = argparse.ArgumentParser(description="TMoohI Server")
 	parser.add_argument("--config",default="",help="Config file in YAML format")
-	args = parser.parse_args()
-	srv = TMoohIServer(args)
+	args, extraargs = parser.parse_known_args()
+	srv = TMoohIServer(args, parse_unknown_args(extraargs))
 	uninterrupted = True
 	crashtime = 1
 	lastcrash = 0
