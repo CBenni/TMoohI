@@ -3,4 +3,4 @@ PyYAML==3.11
 six==1.10.0
 txaio==2.5.1
 wheel==0.26.0
-SimpleWebSocketServer==0.1.0
+-e git+https://github.com/dpallot/simple-websocket-server.git#egg=SimpleWebSocketServer
