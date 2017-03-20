@@ -72,10 +72,11 @@ class TMoohIManager(TMoohIStatTrack):
 		return usr
 
 	def disconnect(self, client):
-		try:
-			client.user.clients.remove(client)
-		except Exception:
-			self.logger.exception()
+		if client.user:
+			try:
+				client.user.clients.remove(client)
+			except Exception:
+				self.logger.exception()
 
 	def getJSON(self,url,cooldown=3600):
 		try:
