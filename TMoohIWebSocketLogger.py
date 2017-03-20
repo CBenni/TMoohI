@@ -21,6 +21,8 @@ class TMoohIWebsocketServer:
 		self.port = port
 		self.defaultfilter = defaultfilter
 		
+		self.clients = []
+		
 		
 		self.server = SimpleWebSocketServer(self.host, self.port, websocketlogger)
 		self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer loading up on %s:%s!"%(self.host, self.port)))
@@ -51,7 +53,7 @@ class websocketlogger(WebSocket, MoohLog.logwriter):
 		
 	def handleConnected(self):
 		self.filters = copy.deepcopy(websocketServer.defaultfilter)
-		
+		websocketServer.clients.append(self)
 		websocketServer.logger.writers.append(self)
 		websocketServer.logger.debug(eventmessage("websocket","Websocket connected: {}".format(self.address[0])))
 		# when opening a connection, send the current state
@@ -108,6 +110,7 @@ class websocketlogger(WebSocket, MoohLog.logwriter):
 	def handleClose(self):
 		try:
 			websocketServer.logger.writers.remove(self)
+			websocketServer.clients.remove(self)
 		except ValueError:
 			pass
 		websocketServer.logger.debug(eventmessage("websocket","WebSocket connection closed"))

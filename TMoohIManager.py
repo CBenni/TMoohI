@@ -171,7 +171,7 @@ class TMoohIManager(TMoohIStatTrack):
 	def updateStatus(self):
 		cnt = 0
 		while not self.quitting:
-			if cnt%10==0:
+			if cnt%10==0 and len(self.parent.websocketserver.clients) > 0:
 				try:
 					serialized = self.serialize()
 					self.parent.websocketserver.neweststatus = serialized
