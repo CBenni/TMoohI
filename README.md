@@ -28,6 +28,10 @@ Then run with:
 ```shell
 python TMoohI.py
 ```
+To use a custom config.yaml, use 
+```shell
+python TMoohI.py --config config.yaml
+```
 
 Connect the same way as you would for twitch. Ignore rate limits. Be happy.
 
