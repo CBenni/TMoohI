@@ -15,6 +15,7 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", "$mdDialog", functi
 	$scope.selectedChannel = null;
 	$scope.selectedConnection = null;
 	$scope.filters = [{"level__ge":10},{"type":"status"}];
+	self.selectedStatusTab = 0;
 
     var websocketProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
 	self.websocket = new WebSocket(ws_url || websocketProtocol + '//'+window.location.hostname+':3141');
@@ -70,15 +71,24 @@ TMoohIApp.controller("StatusController", ["$scope", "$http", "$mdDialog", functi
 function processStatusMessage($http, status) {
 	for(var userid in status.users) {
 		var user = status.users[userid];
+		user.channelList = [];
+		var connectionDict = {};
+		for(var i=0;i<user.connections.length;++i) {
+			var conn = user.connections[i];
+			connectionDict[conn.id] = conn;
+		}
 		for(var channelname in user.channels) {
 			var channel = user.channels[channelname];
+			user.channelList.push(channel);
 			channel.state = {
 				badges: channel.data.USERSTATE && getBadges(parseIRCMessage(channel.data.USERSTATE)),
 				settings: channel.data.ROOMSTATE && getSettings(parseIRCMessage(channel.data.ROOMSTATE)),
 				hosting: channel.data.HOSTTARGET && getHosting(parseIRCMessage(channel.data.HOSTTARGET))
 			};
 			channel.badges = getChannelBadges($http, channel.name.substr(1));
-			channel.id = userid+channel.key;
+			channel.id = userid+channel.name;
+			channel.user = user;
+			channel.connectionObj = connectionDict[channel.connection];
 		}
 	}
 	return status;

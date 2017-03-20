@@ -36,13 +36,16 @@
 			</md-whiteframe>
 		</div>
 		<div layout="column" flex="100">
-			<md-tabs md-border-bottom class="box md-whiteframe-5dp" style="min-height: 600px;" flex layout-margin layout-padding md-dynamic-height>
+			<md-tabs md-border-bottom class="box md-whiteframe-5dp" style="min-height: 600px;" flex layout-margin layout-padding md-dynamic-height md-selected="statusCtrl.selectedStatusTab">
 				<md-tab label="Channels">
 					<md-content layout="row" layout-margin layout-padding>
 						<div class="tabcolumn" flex="25" layout="column">
+							<md-input-container class="errorless compact">
+								<input type="text" ng-model="channelSearch" placeholder="search..."></input>
+							</md-input-container>
 							<div class="tabrow" ng-repeat="(user, info) in status.users" flex="none" layout="column">
 								<div class="channels md-title md-primary">{{info.nick}}</div>
-								<div ng-repeat="channel in info.channels" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.name == channel.name}" class="userlistentry">
+								<div ng-repeat="channel in info.channelList | orderBy:'name' | filter:{name:channelSearch}:false" md-button md-ink-ripple ng-click="statusCtrl.selectChannel(channel)" ng-class="{selectedChannel: selectedChannel.name == channel.name}" class="userlistentry">
 									<img md-icon ng-repeat="badge in channel.state.badges" ng-src="{{channel.badges[badge].image}}" class="center-y"> {{channel.name}}
 								</div>
 							</div>
@@ -73,6 +76,10 @@
 										<td>Hosting target</td>
 										<td>{{selectedChannel.state.hosting}}</td>
 									</tr>
+									<tr>
+										<td>Connection</td>
+										<td><md-button md-ink-ripple ng-click="statusCtrl.selectConnection(selectedChannel.user, selectedChannel.connectionObj); statusCtrl.selectedStatusTab=1"><md-icon>{{selectedChannel.connectionObj.connected?"check_circle":"error"}}</md-icon> {{selectedChannel.connection}}</md-button></td>
+									</tr>
 								</table>
 							</div>
 							<br>
@@ -102,8 +109,10 @@
 										</tr>
 									</table>
 								<div class="channels md-title md-primary">Joined channels</div>
-									<div ng-repeat="channelName in selectedConnection.channels">
-										<img md-icon ng-repeat="badge in selectedConnection.user.channels[channelName].state.badges" ng-src="{{selectedConnection.user.channels[channelName].badges[badge].image}}" class="center-y"> {{channelName}}
+									<div ng-repeat="channelName in selectedConnection.channels | orderBy">
+										<md-button md-ink-ripple ng-click="statusCtrl.selectedStatusTab=0; statusCtrl.selectChannel(selectedConnection.user.channels[channelName]);" layout="row" layout-align="start center" class="userlistentry">
+											<img md-icon ng-repeat="badge in selectedConnection.user.channels[channelName].state.badges" ng-src="{{selectedConnection.user.channels[channelName].badges[badge].image}}" flex="none"> <span flex="none" style="margin-left: 8px;">{{channelName}}</span>
+										</md-button>
 									</div>
 							</div>
 							<br>
@@ -112,7 +121,6 @@
 					</md-content>
 				</md-tab>
 			</md-tabs>
-				
 				</div>
 		</div>
 	</div>

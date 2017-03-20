@@ -139,3 +139,15 @@ td {
 .red-icon svg {
 	fill: #F4511E;
 }
+
+md-checkbox {
+	margin-bottom: 0;
+}
+
+md-input-container.compact {
+	margin: 0;
+}
+
+md-input-container.errorless md-errors-spacer {
+	display: none;
+}
