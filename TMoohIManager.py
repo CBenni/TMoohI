@@ -2,6 +2,7 @@ import time
 import json
 import random
 import threading
+import jsonpatch
 from collections import deque
 import urllib.request as urllib2
 
@@ -122,7 +123,7 @@ class TMoohIManager(TMoohIStatTrack):
 						if len(self._conn_join_times) < self.parent.config["connections-per-10"]:
 							if user.getTotalChannels() >= self.parent.config["capacity-target"] * user.getCapacity():
 								self.logger.debug(eventmessage("manager","Requesting new connection for %s because of exceeded capacity"%(user.key,)))
-								# request new connection
+								# request new connection (in a non-GIL interpreter, wrap this in try-except)
 								user.connections.append(self.TMIConnectionFactory(user))
 						# handle message queues
 						user.handleMessageQueue()
@@ -172,11 +173,12 @@ class TMoohIManager(TMoohIStatTrack):
 	def updateStatus(self):
 		cnt = 0
 		while not self.quitting:
-			if cnt%10==0 and len(self.parent.websocketserver.clients) > 0:
+			if cnt%10==0:
 				try:
 					serialized = self.serialize()
+					patch = jsonpatch.JsonPatch.from_diff(self.parent.websocketserver.neweststatus, serialized)
 					self.parent.websocketserver.neweststatus = serialized
-					self.logger.log(1,MoohLog.statusmessage(serialized))
+					self.logger.log(1,MoohLog.statusmessage(patch.patch,"patch"))
 				except Exception:
 					self.logger.exception()
 			cnt += 1

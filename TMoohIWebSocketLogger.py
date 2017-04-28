@@ -57,7 +57,7 @@ class websocketlogger(WebSocket, MoohLog.logwriter):
 		websocketServer.logger.writers.append(self)
 		websocketServer.logger.debug(eventmessage("websocket","Websocket connected: {}".format(self.address[0])))
 		# when opening a connection, send the current state
-		self.inner_write(statusmessage(websocketServer.neweststatus))
+		self.inner_write(statusmessage(websocketServer.neweststatus,"status"))
 	
 	def handleMessage(self):
 		if self.opcode != TEXT:

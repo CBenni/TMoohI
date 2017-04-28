@@ -112,13 +112,15 @@ class TMoohITCPHandler(socketserver.BaseRequestHandler,TMoohIStatTrack):
 		self.welcomed = False
 		self.user = None
 		self.starttime = time.time()
+		self.id = "%s/%s"%(self.client_address[0],self.client_address[1])
 		self.commandsent = 0
 		self.channels = {}
 		linesep = None
 		self.stats = {
 			"since": time.time(),
 			"sent": self.getCommandsSent,
-			"channels": self.channelList
+			"channels": self.channelList,
+			"id": self.id
 		}
 		
 		

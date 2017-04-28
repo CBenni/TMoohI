@@ -184,9 +184,9 @@ class eventmessage(logmessage):
 
 
 class statusmessage(logmessage):
-    def __init__(self,stats):
+    def __init__(self,stats,type):
         self.data = stats
-        self.type = "status"
+        self.type = type
     
     def inner_str(self):
         return json.dumps(self.data)
@@ -205,4 +205,4 @@ if __name__ == "__main__":
     l.error(eventmessage("test","testing events"))
     l.fatal(eventmessage("test","testing events"))
     
-    l.info(statusmessage({"dank":"memes","bro":420}))
+    l.info(statusmessage({"dank":"memes","bro":420},"status"))

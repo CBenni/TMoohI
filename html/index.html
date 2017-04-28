@@ -80,6 +80,14 @@
 										<td>Connection</td>
 										<td><md-button md-ink-ripple ng-click="statusCtrl.selectConnection(selectedChannel.user, selectedChannel.connectionObj); statusCtrl.selectedStatusTab=1"><md-icon>{{selectedChannel.connectionObj.connected?"check_circle":"error"}}</md-icon> {{selectedChannel.connection}}</md-button></td>
 									</tr>
+									<tr>
+										<td>Clients</td>
+										<td>
+											<div ng-repeat="client in selectedChannel.user.clients" md-button md-ink-ripple ng-click="statusCtrl.selectClient(selectedChannel.user, client); statusCtrl.selectedStatusTab=2" ng-class="{selectedChannel: selectedClient.id == client.id}" class="userlistentry" ng-if="client.channels.indexOf(selectedChannel.name) >= 0">
+												{{client.id}}
+											</div>
+										</td>
+									</tr>
 								</table>
 							</div>
 							<br>
@@ -120,6 +128,45 @@
 						
 					</md-content>
 				</md-tab>
+				<md-tab label="Clients">
+					<md-content layout="row" layout-margin layout-padding>
+						<div class="tabcolumn" flex="25" layout="column">
+							<div class="tabrow" ng-repeat="(user, info) in status.users" flex="none" layout="column">
+								<div class="channels md-title md-primary">{{info.nick}}</div>
+								<div ng-repeat="client in info.clients" md-button md-ink-ripple ng-click="statusCtrl.selectClient(info, client)" ng-class="{selectedChannel: selectedClient.id == client.id}" class="userlistentry">
+									{{client.id}}
+								</div>
+							</div>
+						</div>
+						<div class="tabcolumn" flex ng-show="selectedClient">
+							<div class="tabrow" flex="none" layout="column">
+								<div class="channels md-title md-primary">Connection state</div>
+									<table>
+										<tr>
+											<td>Connected since</td>
+											<td>
+												<span time-since="selectedClient.since"></span>
+											</td>
+										</tr>
+										<tr>
+											<td>Messages sent</td>
+											<td>
+												{{selectedClient.sent}}
+											</td>
+										</tr>
+									</table>
+								<div class="channels md-title md-primary">Joined channels</div>
+									<div ng-repeat="channelName in selectedClient.channels | orderBy">
+										<md-button md-ink-ripple ng-click="statusCtrl.selectedStatusTab=0; statusCtrl.selectChannel(selectedClient.user.channels[channelName.slice(1)]);" layout="row" layout-align="start center" class="userlistentry">
+											<img md-icon ng-repeat="badge in selectedClient.user.channels[channelName].state.badges" ng-src="{{selectedClient.user.channels[channelName].badges[badge].image}}" flex="none"> <span flex="none" style="margin-left: 8px;">{{channelName}}</span>
+										</md-button>
+									</div>
+							</div>
+							<br>
+						</div>
+						
+					</md-content>
+				</md-tab>
 			</md-tabs>
 				</div>
 		</div>
@@ -133,6 +180,7 @@
 	<!--<script src="bower_components/angular-sanitize/angular-sanitize.js"></script>-->
 	<script src="bower_components/angular-aria/angular-aria.min.js"></script>
 	<script src="bower_components/angular-material/angular-material.min.js"></script>
+	<script src="bower_components/fast-json-patch/dist/json-patch.min.js"></script>
 	<script src="parseircmessage.js"></script>
 	<script src="TMoohIApp.js"></script>
 </body>
