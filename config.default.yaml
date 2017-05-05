@@ -15,3 +15,9 @@ messages-per-30:       15
 connections-per-10:    45
 capacity-target:       0.75
 ratelimit-commands:    true
+server:	               'irc.chat.twitch.tv:443'
+# this works too:
+#server:
+#-   host:              irc.chat.twitch.tv
+#-   port:              443
+#-   secure:            true
