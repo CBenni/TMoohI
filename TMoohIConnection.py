@@ -1,4 +1,5 @@
 import re
+import ssl
 import time
 import socket
 import threading
@@ -26,21 +27,39 @@ class TMoohIConnection(TMoohIStatTrack):
 		
 		# list of TMoohIChannels that are supposed to be joined by this connection.
 		self.channels = []
+		self.serverObj = None
+		if type(server) == str:
+			srvinfo = re.split("[^\d\w\.]",server)
+			if len(srvinfo) == 2:
+				port = int(srvinfo[1])
+				self.serverObj = {
+					"host": srvinfo[0],
+					"port": port,
+					"secure": port == 443
+				}
+			elif len(srvinfo) == 1:
+				self.serverObj = {
+					"host": srvinfo[0],
+					"port": 6667,
+					"secure": False
+				}
+		elif type(server) == dict:
+			port = int(server.get("port", 6667))
+			self.serverObj = {
+				"host": server.get("host", "irc.chat.twitch.tv"),
+				"port": port,
+				"secure": server.get("secure", port == 443)
+			}
 		
-		
-		srvinfo = re.split("[^\d\w\.]",server)
-		self.port = 6667
-		self.server = server
-		self.ip = self.server
-		if len(srvinfo) == 2:
-			self.port = int(srvinfo[1])
-			self.ip = srvinfo[0]
-		
+		if not self.serverObj:
+			raise ArgumentException("Invalid server settings")
+		 
 		self.stats = {
-			"server": "%s:%s"%(self.ip, self.port),
+			"server": "%s:%s"%(self.serverObj["host"], self.serverObj["port"]),
 			"id": self.connid,
 			"connected": self.getConnected,
-			"channels": self.getChannels
+			"channels": self.getChannels,
+			"secure": self.serverObj["secure"]
 		}
 		
 		# internals:
@@ -64,10 +83,12 @@ class TMoohIConnection(TMoohIStatTrack):
 	
 	def connect(self):
 		self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self._socket.connect((self.ip, self.port))
+		if self.serverObj["secure"]:
+			self._socket = ssl.wrap_socket(self._socket)
+		self._socket.connect((self.serverObj["host"], self.serverObj["port"]))
 		self._recvthread = threading.Thread(target=self.listen)
 		self._recvthread.start()
-		self.logger.info(eventmessage("connection","Connecting to %s/%s for %s"%(self.ip, self.port, self.connid)))
+		self.logger.info(eventmessage("connection","Connecting to %s/%s for %s"%(self.serverObj["host"], self.serverObj["port"], self.connid)))
 		self.sendraw("CAP REQ :twitch.tv/tags\r\nCAP REQ :twitch.tv/commands")
 		if self.parent.oauth:
 			self.sendraw("PASS %s"%(self.parent.oauth,))
@@ -77,7 +98,12 @@ class TMoohIConnection(TMoohIStatTrack):
 	def listen(self):
 		try:
 			while True:
-				buf = self._socket.recv(2048).decode("utf-8")
+				buf = ""
+				try:
+					buf = self._socket.recv(2048).decode("utf-8", errors='ignore')
+				except UnicodeDecodeError:
+					self.logger.exception()
+					continue
 				if not buf:
 					break
 				if self.killing:
@@ -203,7 +229,7 @@ class TMoohIConnection(TMoohIStatTrack):
 			self.shutdown()
 		elif dt > 10:
 			if dt > 20:
-				self.logger.warning(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
+				self.logger.info(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
 			else:
 				self.logger.debug(eventmessage("connection","Bot %s has not received messages in %d seconds. Pinging TMI server."%(self.connid,int(dt))))
 			self.sendraw("PING")

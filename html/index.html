@@ -110,9 +110,21 @@
 								<div class="channels md-title md-primary">Connection state</div>
 									<table>
 										<tr>
+											<td>Chat server</td>
+											<td>
+												{{selectedConnection.server}}
+											</td>
+										</tr>
+										<tr>
 											<td>Connected</td>
 											<td>
 												<md-checkbox disabled="true" ng-model="selectedConnection.connected"></md-checkbox>
+											</td>
+										</tr>
+										<tr>
+											<td>Secure</td>
+											<td>
+												<md-checkbox disabled="true" ng-model="selectedConnection.secure"></md-checkbox>
 											</td>
 										</tr>
 									</table>

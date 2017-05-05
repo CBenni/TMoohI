@@ -44,7 +44,8 @@ class TMoohIServer():
 			"messages-per-30": 15,
 			"connections-per-10": 45,
 			"capacity-target": 0.75,
-			"ratelimit-commands": True
+			"ratelimit-commands": True,
+			"server": "irc.chat.twitch.tv:443"
 		}
 		
 		

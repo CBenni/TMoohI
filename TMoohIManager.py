@@ -60,7 +60,7 @@ class TMoohIManager(TMoohIStatTrack):
 				self._connectionIDcounter[user.nick] += 1
 			except Exception:
 				self._connectionIDcounter[user.nick] = 1
-			return TMoohIConnection.TMoohIConnection(user,"irc.chat.twitch.tv","%s/%d"%(user.nick,self._connectionIDcounter[user.nick]))
+			return TMoohIConnection.TMoohIConnection(user, self.parent.config["server"],"%s/%d"%(user.nick,self._connectionIDcounter[user.nick]))
 
 	def connect(self, client):
 		for userkey,usr in self.users.items():
