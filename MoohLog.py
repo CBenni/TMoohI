@@ -178,9 +178,10 @@ class eventmessage(logmessage):
         self.message = re.sub("oauth:([a-z0-9]+)",reploauth,message)
         self.message = re.sub("oauth_token=([a-z0-9]+)",reploauth_token,self.message)
         self.type = "event"
+        self.time = datetime.datetime.now()
     
     def inner_str(self):
-        return "[%s] %s"%(self.event,self.message)
+        return "[%s] [%s] %s"%(self.time.strftime("%H:%M:%S"), self.event, self.message)
 
 
 class statusmessage(logmessage):
