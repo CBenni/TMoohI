@@ -20,6 +20,7 @@ class TMoohIWebsocketServer:
 		self.host = host
 		self.port = port
 		self.defaultfilter = defaultfilter
+		self.killing = False
 		
 		self.clients = []
 		
@@ -32,18 +33,28 @@ class TMoohIWebsocketServer:
 		self.neweststatus = {}
 	
 	def quit(self):
+		self.killing = True
 		self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shutting down!"))
 		self.server.close()
 	
 	def runserver(self):
-		try:
-			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer starting!"))
-			self.server.serveforever()
-		except (KeyboardInterrupt, OSError):
-			pass
-		finally:
-			self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shut down!"))
-			self.server.close()
+		while not self.killing:
+			try:
+				self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer starting!"))
+				self.server.serveforever()
+			except (KeyboardInterrupt):
+				self.killing = True
+			except OSError:
+				if not self.killing: # swallow errors when closing
+					self.logger.exception() 
+			except Exception:
+				self.logger.exception()
+			finally:
+				self.logger.info(MoohLog.eventmessage("websocket","WebSocketServer shut down!"))
+				try:
+					self.server.close()
+				except OSError:
+					pass # swallow "An operation was attempted on something that is not a socket" errors
 
 class websocketlogger(WebSocket, MoohLog.logwriter):
 	#def __init__(self, svr, sock, adr):
