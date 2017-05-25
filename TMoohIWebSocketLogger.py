@@ -2,6 +2,7 @@ import json
 import copy
 import asyncio
 import threading
+import datetime
 
 import MoohLog
 from MoohLog import statusmessage, eventmessage, MoohLogger
@@ -9,6 +10,13 @@ from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
 TEXT = 0x01
 from TMoohIErrors import AlreadyDefinedError
 websocketServer = None
+
+def json_serial(obj):
+    if isinstance(obj, datetime.datetime):
+        serial = obj.isoformat()
+        return serial
+    raise TypeError ("Type not serializable")
+
 class TMoohIWebsocketServer:
 	def __init__(self, logger, host, port, defaultfilter = []):
 		global websocketServer
@@ -114,9 +122,9 @@ class websocketlogger(WebSocket, MoohLog.logwriter):
 
 	def inner_write(self,message):
 		try:
-			self.sendMessage(json.dumps(message.serialize()))#.encode("utf-8")
-		except Exception:
-			pass
+			self.sendMessage(json.dumps(message.serialize(), default=json_serial))#.encode("utf-8")
+		except Exception as e:
+			print(e)
 
 	def handleClose(self):
 		try:
